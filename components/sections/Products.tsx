@@ -5,44 +5,18 @@ import { motion, useInView } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
+import type { Product } from "@/lib/types";
 
-const PRODUCTS = [
-  {
-    slug: "teja-chilli",
-    name: "Teja Chilli",
-    description: "High pungency, vibrant colour and rich aroma.",
-    detail: "S17 variety · 50,000–80,000 SHU",
-    image: "https://images.pexels.com/photos/112780/pexels-photo-112780.jpeg?auto=compress&cs=tinysrgb&w=600",
-  },
-  {
-    slug: "byadgi-chilli",
-    name: "Byadgi Chilli",
-    description: "Known for its deep red colour and mild heat.",
-    detail: "High ASTA colour · Low SHU",
-    image: "https://images.pexels.com/photos/221140/pexels-photo-221140.jpeg?auto=compress&cs=tinysrgb&w=600",
-  },
-  {
-    slug: "turmeric",
-    name: "Turmeric",
-    description: "Rich in curcumin and golden in colour.",
-    detail: "3–5% curcumin content",
-    image: "https://images.pexels.com/photos/6220710/pexels-photo-6220710.jpeg?auto=compress&cs=tinysrgb&w=600",
-  },
-  {
-    slug: "coffee-beans",
-    name: "Coffee Beans",
-    description: "Sourced from the finest Indian plantations.",
-    detail: "Arabica & Robusta varieties",
-    image: "https://images.pexels.com/photos/942803/pexels-photo-942803.jpeg?auto=compress&cs=tinysrgb&w=600",
-  },
-  {
-    slug: "spice-powders",
-    name: "Spice Powders",
-    description: "Hygienic ground spices with natural oils retained.",
-    detail: "Custom blends available",
-    image: "https://images.pexels.com/photos/4198417/pexels-photo-4198417.jpeg?auto=compress&cs=tinysrgb&w=600",
-  },
-];
+const FALLBACK_IMAGE = "https://images.pexels.com/photos/4198417/pexels-photo-4198417.jpeg?auto=compress&cs=tinysrgb&w=600";
+
+function getDetail(p: Product): string {
+  if (p.variety && p.shuMin && p.shuMax) {
+    return `${p.variety} · ${p.shuMin.toLocaleString()}–${p.shuMax.toLocaleString()} SHU`;
+  }
+  if (p.variety) return p.variety;
+  if (p.astaValue) return p.astaValue;
+  return "Premium quality";
+}
 
 const container = {
   hidden: {},
@@ -53,7 +27,7 @@ const card = {
   show: { opacity: 1, y: 0, transition: { duration: 0.75, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] } },
 };
 
-export default function Products() {
+export default function Products({ products }: { products: Product[] }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
 
@@ -102,21 +76,19 @@ export default function Products() {
           initial="hidden"
           animate={inView ? "show" : "hidden"}
         >
-          {PRODUCTS.map((product) => (
+          {products.map((product) => (
             <motion.div key={product.slug} variants={card}>
               <Link href={`/products/${product.slug}`} className="group block">
                 {/* Image */}
                 <div className="relative aspect-square overflow-hidden mb-4">
                   <Image
-                    src={product.image}
+                    src={product.images[0]?.url ?? FALLBACK_IMAGE}
                     alt={product.name}
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-105 brightness-90 group-hover:brightness-100"
                     sizes="(max-width: 768px) 50vw, 20vw"
                   />
-                  {/* Gold border on hover */}
                   <div className="absolute inset-0 border border-transparent group-hover:border-gold/40 transition-colors duration-300" />
-                  {/* Arrow */}
                   <div className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-black-deep/70 border border-gold/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <ArrowUpRight size={13} className="text-gold" />
                   </div>
@@ -130,7 +102,7 @@ export default function Products() {
                   {product.name}
                 </h3>
                 <p
-                  className="text-[0.75rem] text-white/40 leading-relaxed mb-1.5"
+                  className="text-[0.75rem] text-white/40 leading-relaxed mb-1.5 line-clamp-2"
                   style={{ fontFamily: "var(--font-inter)" }}
                 >
                   {product.description}
@@ -139,7 +111,7 @@ export default function Products() {
                   className="text-[0.65rem] text-gold/60 tracking-[0.06em] uppercase"
                   style={{ fontFamily: "var(--font-space-grotesk)" }}
                 >
-                  {product.detail}
+                  {getDetail(product)}
                 </p>
               </Link>
             </motion.div>

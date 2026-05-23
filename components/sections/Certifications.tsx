@@ -3,31 +3,19 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { ShieldCheck, Award, Leaf, BadgeCheck } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import type { Certification } from "@/lib/types";
 
-const CERTS = [
-  {
-    icon: ShieldCheck,
-    name: "ISO 22000",
-    subtitle: "Food Safety Management System",
-  },
-  {
-    icon: Award,
-    name: "HACCP",
-    subtitle: "Hazard Analysis Critical Control Points",
-  },
-  {
-    icon: BadgeCheck,
-    name: "APEDA",
-    subtitle: "Agricultural & Processed Food Products Export",
-  },
-  {
-    icon: Leaf,
-    name: "Spices Board",
-    subtitle: "Ministry of Commerce, Government of India",
-  },
-];
+function iconForCert(name: string): LucideIcon {
+  const n = name.toLowerCase();
+  if (n.includes("iso"))    return ShieldCheck;
+  if (n.includes("haccp"))  return Award;
+  if (n.includes("apeda"))  return BadgeCheck;
+  if (n.includes("spice"))  return Leaf;
+  return ShieldCheck;
+}
 
-export default function Certifications() {
+export default function Certifications({ certs }: { certs: Certification[] }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
 
@@ -66,31 +54,34 @@ export default function Certifications() {
         </motion.p>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-          {CERTS.map(({ icon: Icon, name, subtitle }, i) => (
-            <motion.div
-              key={name}
-              className="flex flex-col items-start p-5 border border-ivory-dark bg-smoke"
-              initial={{ opacity: 0, y: 24 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.7, delay: 0.3 + i * 0.1, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <div className="w-10 h-10 rounded-full border border-gold/30 flex items-center justify-center mb-4 bg-ivory">
-                <Icon size={17} className="text-gold" strokeWidth={1.5} />
-              </div>
-              <p
-                className="text-[0.82rem] font-semibold text-black-deep mb-1 tracking-[0.04em]"
-                style={{ fontFamily: "var(--font-space-grotesk)" }}
+          {certs.map((cert, i) => {
+            const Icon = iconForCert(cert.name);
+            return (
+              <motion.div
+                key={cert.id}
+                className="flex flex-col items-start p-5 border border-ivory-dark bg-smoke"
+                initial={{ opacity: 0, y: 24 }}
+                animate={inView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.7, delay: 0.3 + i * 0.1, ease: [0.16, 1, 0.3, 1] }}
               >
-                {name}
-              </p>
-              <p
-                className="text-[0.7rem] text-muted leading-relaxed"
-                style={{ fontFamily: "var(--font-inter)" }}
-              >
-                {subtitle}
-              </p>
-            </motion.div>
-          ))}
+                <div className="w-10 h-10 rounded-full border border-gold/30 flex items-center justify-center mb-4 bg-ivory">
+                  <Icon size={17} className="text-gold" strokeWidth={1.5} />
+                </div>
+                <p
+                  className="text-[0.82rem] font-semibold text-black-deep mb-1 tracking-[0.04em]"
+                  style={{ fontFamily: "var(--font-space-grotesk)" }}
+                >
+                  {cert.name}
+                </p>
+                <p
+                  className="text-[0.7rem] text-muted leading-relaxed"
+                  style={{ fontFamily: "var(--font-inter)" }}
+                >
+                  {cert.issuingBody}
+                </p>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>
