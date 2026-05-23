@@ -172,7 +172,7 @@ export default function Process() {
             transition={{ duration: 1, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
           >
             <Image
-              src="https://images.pexels.com/photos/3827839/pexels-photo-3827839.jpeg?auto=compress&cs=tinysrgb&w=800"
+              src="https://images.pexels.com/photos/3735218/pexels-photo-3735218.jpeg?auto=compress&cs=tinysrgb&w=800"
               alt="Shipping port — global export operations"
               fill
               className="object-cover"

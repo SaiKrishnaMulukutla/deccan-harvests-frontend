@@ -22,7 +22,7 @@ const GALLERY = [
   },
   {
     id: 3,
-    src: "https://images.pexels.com/photos/1537169/pexels-photo-1537169.jpeg?auto=compress&cs=tinysrgb&w=800",
+    src: "https://images.pexels.com/photos/4198417/pexels-photo-4198417.jpeg?auto=compress&cs=tinysrgb&w=800",
     alt: "Spices in bowls",
     caption: "Spice Selection",
     tall: false,
