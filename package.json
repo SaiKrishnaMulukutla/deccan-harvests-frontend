@@ -6,7 +6,18 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:visual": "playwright test",
+    "test:visual:update": "playwright test --update-snapshots",
+    "test:visual:before": "playwright test --update-snapshots && mv tests/__screenshots__ tests/__screenshots__.before",
+    "test:visual:report": "playwright show-report",
+    "lhci": "lhci autorun --config=./lighthouserc.cjs",
+    "lhci:desktop": "lhci autorun --config=./lighthouserc.desktop.cjs",
+    "lhci:collect": "lhci collect --config=./lighthouserc.cjs",
+    "lhci:assert": "lhci assert --config=./lighthouserc.cjs",
+    "perf:before": "lhci collect --config=./lighthouserc.cjs && mv .lighthouseci .lighthouseci.before",
+    "perf:after": "lhci collect --config=./lighthouserc.cjs && mv .lighthouseci .lighthouseci.after",
+    "perf:diff": "node ./scripts/lhci-diff.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -21,6 +32,8 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@lhci/cli": "^0.15.1",
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

@@ -39,3 +39,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Playwright
+/playwright-report/
+/test-results/
+/tests/__screenshots__.before/
+
+# Lighthouse CI
+/.lighthouseci/
+/.lighthouseci-desktop/
+/.lighthouseci.before/
+/.lighthouseci.after/

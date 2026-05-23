@@ -57,19 +57,19 @@ export default function Footer() {
 
           {/* Brand */}
           <div className="lg:col-span-1">
-            <div className="mb-5">
-              <p
-                className="text-[1.2rem] font-semibold tracking-[0.22em] text-smoke uppercase"
+            <div className="mb-5 flex items-baseline gap-2">
+              <span
+                className="text-[1.05rem] font-semibold tracking-[0.25em] text-smoke uppercase"
                 style={{ fontFamily: "var(--font-space-grotesk)" }}
               >
                 Deccan
-              </p>
-              <p
-                className="text-[0.6rem] tracking-[0.38em] text-gold uppercase"
+              </span>
+              <span
+                className="text-[1.05rem] font-semibold tracking-[0.25em] text-gold uppercase"
                 style={{ fontFamily: "var(--font-space-grotesk)" }}
               >
                 Harvests
-              </p>
+              </span>
             </div>
             <p
               className="text-[0.8rem] text-white/35 leading-relaxed max-w-[220px]"

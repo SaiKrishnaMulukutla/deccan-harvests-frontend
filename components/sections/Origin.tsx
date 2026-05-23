@@ -35,7 +35,7 @@ export default function Origin() {
       id="origin"
       className="bg-ivory"
     >
-      <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[520px]">
+      <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[640px]">
 
         {/* ── Left: Text + Image ── */}
         <div className="flex flex-col justify-center px-8 lg:px-16 xl:px-24 py-20">
@@ -100,7 +100,7 @@ export default function Origin() {
         {/* ── Right: World Map ── */}
         <div className="relative flex flex-col items-center justify-center bg-black-rich px-6 py-16 lg:py-0">
           <motion.div
-            className="w-full max-w-lg"
+            className="w-full max-w-2xl"
             initial={{ opacity: 0 }}
             animate={inView ? { opacity: 1 } : {}}
             transition={{ duration: 1, delay: 0.5 }}

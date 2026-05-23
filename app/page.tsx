@@ -6,6 +6,7 @@ import Products from "@/components/sections/Products";
 import Metrics from "@/components/sections/Metrics";
 import Process from "@/components/sections/Process";
 import Certifications from "@/components/sections/Certifications";
+import GlobalReach from "@/components/sections/GlobalReach";
 import Gallery from "@/components/sections/Gallery";
 import RFQ from "@/components/sections/RFQ";
 
@@ -19,6 +20,7 @@ export default function HomePage() {
       <Metrics />
       <Process />
       <Certifications />
+      <GlobalReach />
       <Gallery />
       <RFQ />
       <Footer />

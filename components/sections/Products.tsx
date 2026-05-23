@@ -97,7 +97,7 @@ export default function Products() {
         {/* Card Grid */}
         <motion.div
           ref={ref}
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5"
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5"
           variants={container}
           initial="hidden"
           animate={inView ? "show" : "hidden"}

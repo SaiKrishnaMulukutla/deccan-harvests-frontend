@@ -2,11 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { gsap } from "gsap";
 import Link from "next/link";
-import { Play, ArrowDown } from "lucide-react";
-
-const HEADLINE_WORDS = ["TO", "GLOBAL", "MARKETS"];
+import { ArrowDown } from "lucide-react";
 
 export default function Hero() {
   const scrollIndicatorRef = useRef<HTMLDivElement>(null);
@@ -23,8 +20,8 @@ export default function Hero() {
   }, []);
 
   return (
-    <section className="relative w-full h-screen min-h-[600px] flex items-center overflow-hidden bg-black-deep">
-      {/* ── Fallback Background Image (shown until video loads or when no video) ── */}
+    <section className="relative w-full min-h-[100svh] flex items-center overflow-hidden bg-black-deep pt-28 pb-20 lg:pt-0 lg:pb-0">
+      {/* ── Fallback Background Image ── */}
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{
@@ -34,7 +31,7 @@ export default function Hero() {
         aria-hidden
       />
 
-      {/* ── Video Background (overlays image when loaded) ── */}
+      {/* ── Video Background ── */}
       <video
         className="absolute inset-0 w-full h-full object-cover"
         autoPlay
@@ -43,7 +40,6 @@ export default function Hero() {
         playsInline
         poster="https://images.pexels.com/photos/2802527/pexels-photo-2802527.jpeg?auto=compress&cs=tinysrgb&w=1920"
       >
-        {/* Replace src with real drone footage when available */}
         <source src="/videos/hero.mp4" type="video/mp4" />
       </video>
 
@@ -78,25 +74,30 @@ export default function Hero() {
           From the Fields of India
         </motion.p>
 
-        {/* Main headline — word by word */}
-        <div className="flex flex-wrap gap-x-5 gap-y-2 mb-4">
-          {HEADLINE_WORDS.map((word, i) => (
-            <div key={word} className="overflow-hidden">
-              <motion.span
-                className="block text-[clamp(4rem,10vw,9rem)] leading-[0.9] font-light text-smoke tracking-tight"
-                style={{ fontFamily: "var(--font-cormorant)" }}
-                initial={{ y: "110%", opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{
-                  duration: 1.0,
-                  delay: 0.7 + i * 0.12,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
-              >
-                {word}
-              </motion.span>
-            </div>
-          ))}
+        {/* Main headline — 2 lines, scales to any viewport */}
+        <div className="flex flex-col gap-y-1 mb-6">
+          <div className="overflow-hidden">
+            <motion.span
+              className="block text-[clamp(2.5rem,9vw,8rem)] leading-[0.92] font-light text-smoke tracking-tight"
+              style={{ fontFamily: "var(--font-cormorant)" }}
+              initial={{ y: "110%", opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 1.0, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            >
+              TO GLOBAL
+            </motion.span>
+          </div>
+          <div className="overflow-hidden">
+            <motion.span
+              className="block text-[clamp(2.5rem,9vw,8rem)] leading-[0.92] font-light text-smoke tracking-tight"
+              style={{ fontFamily: "var(--font-cormorant)" }}
+              initial={{ y: "110%", opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 1.0, delay: 0.82, ease: [0.16, 1, 0.3, 1] }}
+            >
+              MARKETS
+            </motion.span>
+          </div>
         </div>
 
         {/* Subheadline */}
@@ -105,7 +106,7 @@ export default function Hero() {
           style={{ fontFamily: "var(--font-inter)" }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 1.15, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.9, delay: 1.05, ease: [0.16, 1, 0.3, 1] }}
         >
           Premium quality spices, sourced with care from Guntur's fertile fields
           and exported with trust to the world.
@@ -116,7 +117,7 @@ export default function Hero() {
           className="flex flex-wrap items-center gap-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 1.3, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.9, delay: 1.2, ease: [0.16, 1, 0.3, 1] }}
         >
           <Link
             href="/products"
@@ -128,13 +129,17 @@ export default function Hero() {
           </Link>
 
           <button
-            className="flex items-center gap-2.5 text-white/70 hover:text-white text-[0.75rem] tracking-[0.08em] uppercase transition-colors duration-200"
+            className="group flex items-center gap-4"
             style={{ fontFamily: "var(--font-space-grotesk)" }}
           >
-            <span className="flex items-center justify-center w-9 h-9 rounded-full border border-white/30 hover:border-white/60 transition-colors duration-200">
-              <Play size={11} fill="currentColor" />
+            <span className="w-12 h-12 rounded-full border border-gold/40 flex items-center justify-center group-hover:border-gold group-hover:bg-gold/10 transition-all duration-300">
+              <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor" aria-hidden="true">
+                <path d="M0 0v12l10-6z" />
+              </svg>
             </span>
-            Watch Our Story
+            <span className="text-[0.76rem] tracking-[0.16em] uppercase text-white/70 group-hover:text-white transition-colors duration-200">
+              Watch Our Story
+            </span>
           </button>
         </motion.div>
       </div>

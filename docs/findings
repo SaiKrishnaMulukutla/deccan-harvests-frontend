@@ -1,0 +1,854 @@
+I went through the homepage at desktop, tablet, and mobile widths. There are a lot of issues that work against a premium feel — most of them are layout/overflow problems and rough responsive breakpoints. Here's what I found, grouped by severity.
+
+**Critical layout problems (visible at desktop ~1127px)**
+
+The biggest issue is that the entire page appears to be rendered inside a fixed-width container (looks like ~1127–1200px) with no responsive scaling. At any viewport narrower than that, the content gets clipped on the right side. You can see this clearly in several places: the hero headline "TO GLOBAL MARKETS" runs off the right edge, the "Get a Quote" button in the header is half-cut, the products row (Teja, Byadgi, Turmeric, Coffee, Spice Powders) bleeds off-screen, and the gallery grid shows partial tiles on the right. There's also a visible vertical scroll-bar artifact (a thin red/orange bar) hugging the right edge in multiple sections, which suggests a custom scroll indicator that isn't accounting for viewport width.
+
+**Section overlap / vertical spacing**
+
+Several sections collide into each other instead of having clean separation. The "Our Origin" section ends and the cream/beige image block visibly overlaps the dark "Our Products" section below it (the "OUR PRODUCTS" label appears on top of the lighter panel). Similarly, the stats row (Countries Exported / Tons Delivered / Global Partners / Years Experience) overlaps the product cards above it and the "Our Process" heading below it. The Certifications cards (ISO 22000, HACCP, APEDA) collide with the "Global Reach" section text and with the "GALLERY" heading. These look like negative margins or absolute-positioned elements that weren't accounted for.
+
+**The "Our Origin" / world map section**
+
+The big right-side area next to "Rooted in Guntur, Trusted Worldwide" is completely empty at this width — you can faintly see the world map appear later, but the cities (Dubai, London, New York, etc.) and the "Exporting to 20+ Countries Across 4 Continents" callout are missing entirely. The map itself only shows a faint arc with "Guntur, India" — the rest of the cities/animation isn't visible. This is a flagship section and it currently reads as broken.
+
+**Animated counters stuck at zero**
+
+The stats display "0+ COUNTRIES EXPORTED", "0+ TONS DELIVERED", "0+ GLOBAL PARTNERS", "0+ YEARS EXPERIENCE" on initial render and only count up partway as you scroll (I saw 2+, 142+, 7+ frozen mid-animation in one frame, and 4+, 231+, 11+, 3+ in another). The numbers don't seem to settle at the final intended values consistently — "231+ tons delivered" looks like a partial animation state, not a real number. Either the IntersectionObserver isn't firing reliably or the animation doesn't complete.
+
+**Typography / hierarchy**
+
+The serif display font is nice, but the hero ("TO GLOBAL MARKETS") is so large it can't fit one line at this viewport, and there's no fluid `clamp()` sizing to scale it down. The section headings ("Rooted in Guntur, Trusted Worldwide", "From Farm to World With Care", "Fields, Facilities & Beyond", "Let's Grow Together") are also fixed-size and don't scale. The body copy in the "Our Origin" panel has extremely low contrast (very light gray-tan on cream) and is hard to read. The eyebrow labels ("OUR ORIGIN", "OUR PRODUCTS", etc.) sit too close to their headings with no breathing room.
+
+**Navigation**
+
+The hamburger menu kicks in too early — it appears around 895px, which is well into tablet/laptop territory. A premium site should keep the full nav until ~1024px or lower. On mobile (390px) the initial hero state shows no logo and no hamburger at all until you scroll a little, which is jarring. The "Get a Quote" CTA in the header is rendered as a thin pill outline that gets clipped at narrower widths.
+
+**Mobile (390px) specific**
+
+The hamburger appears, but the hero text "FROM THE FIELDS OF INDIA / TO GLOBAL MARKETS" is entirely missing from the first viewport — only the image is shown. The stats section continues to overlap the "Our Process" heading. The "Discover Our Origin" link and the image below it are crammed together with no spacing. The product cards stack acceptably but the section padding is inconsistent.
+
+**Visual polish issues that hurt premium feel**
+
+The "Watch Our Story" play button is a thin circle outline that looks underpowered next to the bold "Explore Our Products →" pill — they're styled like two different design systems. The "01 — 05" scroll counter and vertical "SCROLL ↓" label in the hero are good ideas but feel disconnected (one bottom-left, one bottom-right, different sizing). The footer is dense and cramped, with the logo "DECCAN HARVESTS" splitting across two lines awkwardly. The "Let's Grow Together" red section is a striking color choice but the contrast between the red background and the gold "SEND REQUEST" button is muddy; the form inputs are nearly invisible (transparent on red with thin underlines).
+
+**Smaller things worth fixing**
+
+The "N" floating circle in the bottom-left is unexplained — looks like a stray dev/preview indicator. The gallery tiles have inconsistent aspect ratios and the bottom-right tile shows a dark-on-dark image that reads as a broken/empty thumbnail. The "+ 8 MORE" pill at the end of the country list is styled differently from the other country labels. The Cheese image in the gallery seems off-brand for a spice company.
+
+**Recommended priority order**
+
+The first thing to fix is the container width / overflow problem — set the layout to be fluid (max-width with proper responsive padding) so nothing gets clipped at common laptop widths like 1280, 1366, and 1440. After that, audit every section for negative margins or absolute positioning causing the overlaps. Then fix the counter animation, the missing world-map content, and the navigation breakpoint. Typography scaling with `clamp()` and tightening the form/CTA styling in the red section will get you most of the way to a polished premium look.
+
+I dug into the live DOM and computed styles. Most of what looked like layout chaos is actually a small set of root-cause problems. Here's what's really happening and concrete code fixes for each.
+
+## The single biggest fix: viewport-width root cause
+
+Your `<body>` has `overflow-x: hidden` set globally (I confirmed it: `bodyOverflow: "hidden"`). That's masking real layout overflow rather than fixing it. Worse, you have a `.grain` overlay div that's **1782px wide** sitting inside a 891px body — which would normally cause horizontal scroll but is being hidden by the body rule. The first reflex is to keep `overflow-x: hidden`, but that hides the symptoms while the underlying overflow keeps clipping content.
+
+Fix the grain overlay so it doesn't overflow:
+
+```css
+.grain {
+  position: fixed;        /* if it isn't already */
+  inset: 0;
+  width: 100%;            /* not a hardcoded pixel size */
+  height: 100%;
+  pointer-events: none;
+  /* if you used background-size for a texture, keep that */
+}
+```
+
+Then remove the body-level `overflow-x: hidden` and add it only on the specific sections that legitimately need it (your hero already has `overflow-hidden`, which is fine for the video bleed):
+
+```css
+/* globals.css */
+html, body { overflow-x: clip; }   /* `clip` instead of `hidden` — doesn't create a scroll container, prevents accidental scroll-anchoring issues with Lenis */
+```
+
+The reason this matters: you're using Lenis smooth scrolling (I saw `class="lenis"` on `<html>`). Lenis + `overflow: hidden` on body creates scroll-jank and is one reason your scroll-triggered counters and reveal animations stall mid-animation.
+
+## Hero — fix the offscreen headline
+
+Your hero already uses `clamp(4rem, 10vw, 9rem)` which is good, but the words are wrapped in three separate `<div class="overflow-hidden">` wrappers (for the line-reveal animation) inside a `flex-wrap` container. At ~1127px viewport, `10vw ≈ 113px` per character — "MARKETS" alone is 800px+ and won't fit next to "GLOBAL" on one line, so it wraps and the second line gets clipped by `h-screen min-h-[600px]`.
+
+```html
+<!-- current -->
+<div class="flex flex-wrap gap-x-5 gap-y-2 mb-4">
+  <div class="overflow-hidden"><span class="block text-[clamp(4rem,10vw,9rem)] ...">TO</span></div>
+  <div class="overflow-hidden"><span class="block text-[clamp(4rem,10vw,9rem)] ...">GLOBAL</span></div>
+  <div class="overflow-hidden"><span class="block text-[clamp(4rem,10vw,9rem)] ...">MARKETS</span></div>
+</div>
+```
+
+Two ways to fix:
+
+```html
+<!-- option A: stack vertically (more premium, like the Apple/Aesop pattern) -->
+<div class="flex flex-col gap-y-1 mb-6">
+  <div class="overflow-hidden"><span class="block text-[clamp(3rem,9vw,8rem)] leading-[0.95] ...">TO GLOBAL</span></div>
+  <div class="overflow-hidden"><span class="block text-[clamp(3rem,9vw,8rem)] leading-[0.95] ...">MARKETS</span></div>
+</div>
+
+<!-- option B: tighter clamp + a higher minimum breakpoint -->
+text-[clamp(2.75rem,8vw,7.5rem)]
+```
+
+Also drop the hero's `h-screen` for a content-driven height with a min:
+
+```html
+<section class="relative w-full min-h-screen flex items-center overflow-hidden bg-black-deep py-32 lg:py-0">
+```
+
+## Origin section — the "missing world map" mystery
+
+The section's HTML is actually intact — the SVG map with city labels (Dubai, London, New York, Sydney, Germany, Singapore, Guntur) **is** in the DOM. The reason it appears blank at 1127px is the parent uses `grid grid-cols-1 lg:grid-cols-2`. Tailwind's `lg` = `1024px`, so at desktop it should show two columns. But the inner `<svg viewBox="0 0 800 420">` lives inside `<div class="w-full max-w-lg">` (max-w-lg = 32rem = 512px), so the SVG is shrunk to a small panel, and the right half of the section is just dark space.
+
+Additionally, the cities are wrapped in `<g opacity="0">` — they're set to opacity 0 and presumably animated in by Framer Motion via scroll/intersection. If Lenis or IntersectionObserver setup is off, they stay invisible.
+
+Fixes:
+
+```html
+<!-- give the map room to breathe -->
+<div class="relative flex flex-col items-center justify-center bg-black-rich px-6 py-16 lg:py-24">
+  <div class="w-full max-w-2xl">   <!-- was max-w-lg -->
+    <svg viewBox="0 0 800 420" class="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+      ...
+    </svg>
+  </div>
+</div>
+```
+
+For the city pins, give them an animated default state that doesn't require JS to be visible — progressive enhancement:
+
+```css
+/* fallback: cities visible even if JS animation never fires */
+@media (prefers-reduced-motion: reduce) {
+  svg g[data-city] { opacity: 1 !important; }
+}
+```
+
+And in your Framer Motion / GSAP component, set the initial state with a `viewport={{ once: true, margin: "-10%" }}` and a fallback timeout that forces `opacity: 1` after 2s in case the observer fails:
+
+```tsx
+useEffect(() => {
+  const t = setTimeout(() => {
+    document.querySelectorAll('svg g[data-city]').forEach(g => g.setAttribute('style','opacity:1'));
+  }, 2000);
+  return () => clearTimeout(t);
+}, []);
+```
+
+Also: the section parent is `<section id="origin" class="bg-ivory">` but the right half is `bg-black-rich` — that two-tone split is fine, but the section has **no vertical padding** (`bg-ivory` only, no `py-*`). That's why the next section's eyebrow ("OUR PRODUCTS") looks like it touches the ivory panel above. Add padding to the grid or section:
+
+```html
+<section id="origin" class="bg-ivory">
+  <div class="grid grid-cols-1 lg:grid-cols-2 min-h-[640px]">  <!-- was 520px -->
+```
+
+## Stats section — counters stuck at 0
+
+I confirmed in the DOM that all four `<span>` values literally contain `"0+"` as static text. There's a Framer Motion / IntersectionObserver counter component that should be replacing this text but isn't firing (or fires once for the wrong target). The reason this stalls is almost certainly Lenis again: Lenis transforms the document, which can confuse IntersectionObserver with default `rootMargin`. Two fixes:
+
+```tsx
+// CounterUp.tsx
+import { useInView, useMotionValue, useTransform, animate } from 'framer-motion';
+
+export function CounterUp({ to, duration = 2.2 }: { to: number; duration?: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: '0px 0px -20% 0px' });
+  const mv = useMotionValue(0);
+  const rounded = useTransform(mv, v => `${Math.round(v)}+`);
+
+  useEffect(() => {
+    if (!inView) return;
+    const controls = animate(mv, to, { duration, ease: [0.16, 1, 0.3, 1] });
+    return controls.stop;
+  }, [inView, to]);
+
+  return <motion.span ref={ref}>{rounded}</motion.span>;
+}
+```
+
+And in the parent stats grid:
+
+```tsx
+<CounterUp to={42} />   {/* not 0 — the real target */}
+<CounterUp to={3500} />
+<CounterUp to={180} />
+<CounterUp to={15} />
+```
+
+The "142+" and "231+" frames I caught earlier are clearly mid-animation states the page was rendering when I screenshotted — they're not the final number, they're whatever Framer Motion happened to be at the moment IntersectionObserver triggered (sometimes from above, sometimes from below, depending on Lenis scroll position). Adding `once: true` and a generous bottom `margin` fixes it.
+
+## Products section — overflow off the right edge
+
+The grid is `grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5`. At your 1127px viewport you're in the `lg` range, so 5 columns. Each card has `aspect-square` images. The container is `max-w-[1440px] mx-auto px-6 lg:px-12`. The math works in theory, but the issue is the body overflow hiding cards that don't fit. The real fix is to back off the column count at intermediate widths:
+
+```html
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5">
+```
+
+5 columns is too dense below 1280px — drop to 4 between `lg` (1024) and `xl` (1280).
+
+## Certifications section overlapping Global Reach
+
+I couldn't get the full HTML for the Global Reach section (it kept getting blocked), but the certifications section is `<section id="quality" class="bg-ivory py-24 lg:py-32">` with `grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24`. There's no Global Reach section in your top-level section list — meaning **the "Global Reach" content (with CHINA, UNITED STATES, etc.) is actually nested inside the Certifications section's right column**. That's why they appear stacked/overlapping in the screenshots: it's one section with two columns, and the right column has its own long list.
+
+Restructure so Global Reach is its own section:
+
+```html
+<section id="quality" class="bg-ivory py-24 lg:py-32">
+  <!-- certifications only -->
+</section>
+
+<section id="global-reach" class="bg-ivory-dark py-24 lg:py-32">  <!-- different tone for separation -->
+  <div class="max-w-[1440px] mx-auto px-6 lg:px-12">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+      <header>...</header>
+      <ul class="flex flex-wrap gap-2">...</ul>
+    </div>
+  </div>
+</section>
+```
+
+## Gallery — broken last tile and inconsistent ratios
+
+The gallery is the next section. The "cheese / bread" tile and the dark/empty tile I saw are placeholder Unsplash images. Use a consistent product-relevant set and lock the aspect ratio:
+
+```html
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
+  <a class="group relative block aspect-[4/5] overflow-hidden">
+    <img class="absolute inset-0 w-full h-full object-cover transition-transform duration-[1.2s] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-105" />
+    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent" />
+    <span class="absolute bottom-4 left-4 text-[0.7rem] tracking-[0.18em] text-white uppercase">Guntur Harvest</span>
+  </a>
+  ...
+</div>
+```
+
+## Header — tighten the breakpoint and fix the cut CTA
+
+Your nav is `<ul class="hidden lg:flex ...">` so the menu shows ≥1024px. That's actually fine. The reason it looked broken at 1127px in my first screenshot was the **grain overlay's 1782px width pushing real scroll**, plus the `bg-black/0` transparent header sliding under content. Three small improvements:
+
+```html
+<!-- 1. Make the header background appear once the user scrolls past hero -->
+<header class={`fixed top-0 inset-x-0 z-50 transition-colors duration-300 ${
+  scrolled ? 'bg-black-deep/80 backdrop-blur-md border-b border-white/5' : 'bg-transparent'
+}`}>
+
+<!-- 2. Reduce nav gap at narrower desktop widths -->
+<ul class="hidden lg:flex items-center gap-6 xl:gap-8">
+
+<!-- 3. The CTA button — it's currently `hidden lg:flex` but gets clipped. Make it shrink: -->
+<a class="hidden lg:flex items-center gap-2 px-4 xl:px-5 py-2 xl:py-2.5 text-[0.7rem] xl:text-[0.72rem] tracking-[0.1em] uppercase border border-gold/40 text-gold hover:bg-gold hover:text-black-deep transition-colors whitespace-nowrap">
+  Get a Quote →
+</a>
+```
+
+## Mobile hero text missing
+
+At 390px the hero shows only the image — the headline is missing from the first viewport. Looking at the markup, the headline lives inside `flex flex-col` inside `max-w-[1440px] mx-auto px-6 lg:px-12`. The hero is `h-screen` with no top safe area, but your `<header>` is `position: fixed` and 80px tall, so the headline starts below the fold on small phones because the section uses `flex items-center` and the content height exceeds the available 600px min.
+
+```html
+<section class="relative w-full min-h-[100svh] flex items-center overflow-hidden bg-black-deep pt-24 pb-16">
+  <!-- pt-24 to clear the fixed header; svh handles iOS dynamic toolbars -->
+```
+
+And add a smaller-screen text size:
+
+```html
+<span class="block text-[clamp(2.5rem,11vw,9rem)] leading-[0.9] font-light text-smoke">
+```
+
+(starting clamp at 2.5rem instead of 4rem so the headline actually fits at 390px)
+
+## Contact section — invisible form inputs on red
+
+The contact section uses `style="background-color:#8B1E14"` (a deep red). The form inputs are styled as underline-only with white-on-red text — too low contrast and they look like decoration, not editable inputs. Add a subtle backdrop:
+
+```css
+.quote-form input,
+.quote-form select,
+.quote-form textarea {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 2px;
+  padding: 0.85rem 1rem;
+  color: #fff;
+  font-size: 0.9rem;
+  transition: border-color .2s, background .2s;
+}
+.quote-form input::placeholder,
+.quote-form textarea::placeholder { color: rgba(255,255,255,0.4); }
+.quote-form input:focus,
+.quote-form select:focus,
+.quote-form textarea:focus {
+  outline: none;
+  border-color: #C9A84C;
+  background: rgba(255,255,255,0.10);
+}
+```
+
+Also the "SEND REQUEST" gold button against the red background is muddy — bump the gold luminance or use a cream button for higher contrast:
+
+```css
+.btn-send {
+  background: #F4ECD8;            /* cream-ivory */
+  color: #1a1a1a;
+  padding: 0.95rem 2rem;
+  letter-spacing: 0.14em;
+  font-size: 0.78rem;
+}
+.btn-send:hover { background: #fff; }
+```
+
+## Footer — fix the wrapped logo
+
+The footer has `<p class="text-[1.2rem] font-semibold tracking-[0.22em]">Deccan</p>` and `<p class="text-[0.6rem] tracking-[0.38em]">Harvests</p>` as **two stacked paragraphs**. That's why it reads as a split logo. Make it match the header:
+
+```html
+<div class="flex items-baseline gap-2">
+  <span class="text-[1.05rem] font-semibold tracking-[0.25em] text-smoke uppercase">Deccan</span>
+  <span class="text-[1.05rem] font-semibold tracking-[0.25em] text-gold uppercase">Harvests</span>
+</div>
+```
+
+## A few smaller, premium-polish details
+
+The `Discover Our Origin →` link is `<a class="link-gold">` but has no `href`. Same for "View All Products". Premium-level sites still have working anchors:
+
+```html
+<a class="link-gold" href="/about">Discover Our Origin →</a>
+<a class="link-gold hidden sm:flex" href="/products">View All Products →</a>
+```
+
+The "Watch Our Story" play button is an outlined 44px circle — make it match the weight of "Explore Our Products":
+
+```html
+<button class="group flex items-center gap-3 text-smoke">
+  <span class="w-12 h-12 rounded-full border border-gold/40 flex items-center justify-center group-hover:border-gold group-hover:bg-gold/10 transition-all duration-300">
+    <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor"><path d="M0 0v12l10-6z"/></svg>
+  </span>
+  <span class="text-[0.78rem] tracking-[0.14em] uppercase">Watch Our Story</span>
+</button>
+```
+
+## Recommended order of operations
+
+Fix the `.grain` overlay width and body overflow first — that single change will eliminate roughly half of the visible clipping issues. Then restructure the Certifications/Global-Reach section (they're currently one section pretending to be two). Then the counter component's `useInView` config. Then the hero typography clamp range and `min-h-[100svh]`. Then the products/origin grid breakpoints. The form styling and footer logo are quick polish wins for the end.
+
+Here's a single consolidated patch. I've grouped it into three files: `globals.css`, the JSX class changes (organized as before → after per component), and one new `CounterUp` component. Everything below is copy-pasteable.
+
+---
+
+# `app/globals.css` — additions & replacements
+
+```css
+/* =========================================================================
+   1. ROOT OVERFLOW — the single biggest fix
+   The .grain overlay is 1782px wide (verified). Body had overflow-x: hidden
+   which masked overflow rather than fixing it, and interferes with Lenis.
+   ========================================================================= */
+html,
+body {
+  overflow-x: clip;        /* `clip` doesn't create a scroll container,
+                              works with Lenis, prevents accidental anchoring */
+  overscroll-behavior-y: none;
+}
+
+/* Grain texture — was width: 1782px with negative inset offsets.
+   Rebuild as a fixed full-viewport layer. */
+.grain {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.06;                    /* was likely higher; subtler reads premium */
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  transform: none;                  /* kill the matrix transform */
+}
+
+/* =========================================================================
+   2. TYPOGRAPHY UTILITIES — section labels & gold link
+   ========================================================================= */
+.section-label {
+  font-family: var(--font-space-grotesk);
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgb(201 168 76 / 0.9);     /* gold @ 90% */
+  position: relative;
+  padding-left: 2.5rem;
+}
+.section-label::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 2rem;
+  height: 1px;
+  background: rgb(201 168 76 / 0.6);
+}
+
+.link-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-space-grotesk);
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #C9A84C;
+  border-bottom: 1px solid rgb(201 168 76 / 0.35);
+  padding-bottom: 0.3rem;
+  transition: border-color .25s, color .25s, gap .25s;
+}
+.link-gold:hover { color: #E0BD5A; border-color: #C9A84C; gap: 0.75rem; }
+
+/* =========================================================================
+   3. QUOTE FORM — make inputs actually visible on the red background
+   ========================================================================= */
+#contact form input,
+#contact form select,
+#contact form textarea {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom-width: 1px;
+  border-radius: 2px;
+  padding: 0.9rem 1rem;
+  color: #fff;
+  font-size: 0.88rem;
+  font-family: var(--font-inter);
+  transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
+  width: 100%;
+}
+#contact form input::placeholder,
+#contact form textarea::placeholder {
+  color: rgba(255, 255, 255, 0.38);
+}
+#contact form select { appearance: none; cursor: pointer; padding-right: 2.5rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23ffffff88' stroke-width='1.2'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 1rem center; }
+#contact form select option { background: #1a1a1a; color: #fff; }
+#contact form input:focus,
+#contact form select:focus,
+#contact form textarea:focus {
+  outline: none;
+  border-color: #C9A84C;
+  background: rgba(255, 255, 255, 0.09);
+  box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.12);
+}
+
+/* The send button — cream on red reads much cleaner than gold on red */
+#contact form button[type="submit"] {
+  background: #F4ECD8;
+  color: #1a1a1a;
+  padding: 1rem 2.25rem;
+  letter-spacing: 0.16em;
+  font-size: 0.76rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  transition: background .25s, color .25s, transform .25s;
+}
+#contact form button[type="submit"]:hover {
+  background: #fff;
+  transform: translateY(-1px);
+}
+
+/* =========================================================================
+   4. MOTION FALLBACKS — never leave content invisible if JS/observer fails
+   ========================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  svg [data-city] { opacity: 1 !important; }
+}
+
+/* If Framer Motion initial opacity:0 nodes are still hidden after 3s of being
+   in the viewport (observer failed), reveal them. */
+[data-reveal]:not([data-reveal-visible]) {
+  animation: forceReveal 0s linear 3s forwards;
+}
+@keyframes forceReveal { to { opacity: 1; transform: none; } }
+
+/* =========================================================================
+   5. LENIS — make sure it doesn't fight overflow-x:clip
+   ========================================================================= */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto; }
+```
+
+---
+
+# Per-component JSX diffs (Tailwind classes only)
+
+## 1. `components/Header.tsx`
+
+```diff
+- <nav class="max-w-[1440px] mx-auto px-6 lg:px-12 h-20 flex items-center justify-between">
++ <nav class="max-w-[1440px] mx-auto px-6 lg:px-12 h-20 flex items-center justify-between">
+
+- <ul class="hidden lg:flex items-center gap-8">
++ <ul class="hidden lg:flex items-center gap-6 xl:gap-8">
+
+- <a class="hidden lg:flex items-center gap-2 px-5 py-2.5 text-[0.72rem] tracking-[0.1em] uppercase border border-gold/40 ...">
+-   Get a Quote →
+- </a>
++ <a class="hidden lg:inline-flex items-center gap-2 px-4 xl:px-5 py-2 xl:py-2.5 text-[0.7rem] xl:text-[0.72rem] tracking-[0.1em] uppercase border border-gold/40 text-gold hover:bg-gold hover:text-black-deep transition-colors duration-300 whitespace-nowrap">
++   Get a Quote →
++ </a>
+```
+
+And wrap the whole `<header>` so it gets a backdrop after scrolling past the hero:
+
+```diff
+- <header class="fixed top-0 inset-x-0 z-50">
++ <header
++   className={`fixed top-0 inset-x-0 z-50 transition-colors duration-300 ${
++     scrolled
++       ? 'bg-black-deep/75 backdrop-blur-md border-b border-white/5'
++       : 'bg-transparent'
++   }`}
++ >
+```
+
+```tsx
+// add at top of Header.tsx
+const [scrolled, setScrolled] = useState(false);
+useEffect(() => {
+  const onScroll = () => setScrolled(window.scrollY > 40);
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+  return () => window.removeEventListener('scroll', onScroll);
+}, []);
+```
+
+## 2. `components/Hero.tsx`
+
+```diff
+- <section class="relative w-full h-screen min-h-[600px] flex items-center overflow-hidden bg-black-deep">
++ <section class="relative w-full min-h-[100svh] flex items-center overflow-hidden bg-black-deep pt-28 pb-20 lg:pt-0 lg:pb-0">
+
+- <div class="flex flex-wrap gap-x-5 gap-y-2 mb-4">
+-   <div class="overflow-hidden"><span class="block text-[clamp(4rem,10vw,9rem)] leading-[0.9] font-light text-smoke tracking-tight">TO</span></div>
+-   <div class="overflow-hidden"><span class="block text-[clamp(4rem,10vw,9rem)] leading-[0.9] font-light text-smoke tracking-tight">GLOBAL</span></div>
+-   <div class="overflow-hidden"><span class="block text-[clamp(4rem,10vw,9rem)] leading-[0.9] font-light text-smoke tracking-tight">MARKETS</span></div>
+- </div>
++ <div class="flex flex-col gap-y-1 mb-6">
++   <div class="overflow-hidden">
++     <span class="block text-[clamp(2.5rem,9vw,8rem)] leading-[0.92] font-light text-smoke tracking-tight">TO GLOBAL</span>
++   </div>
++   <div class="overflow-hidden">
++     <span class="block text-[clamp(2.5rem,9vw,8rem)] leading-[0.92] font-light text-smoke tracking-tight">MARKETS</span>
++   </div>
++ </div>
+```
+
+Watch-our-story button:
+
+```diff
+- <button class="flex items-center gap-3">
+-   <span class="w-11 h-11 rounded-full border border-white/40 flex items-center justify-center">
+-     ▶
+-   </span>
+-   <span class="text-[0.72rem] tracking-[0.14em] text-white uppercase">Watch Our Story</span>
+- </button>
++ <button class="group flex items-center gap-4 text-smoke">
++   <span class="w-12 h-12 rounded-full border border-gold/40 flex items-center justify-center
++                group-hover:border-gold group-hover:bg-gold/10 transition-all duration-300">
++     <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor" aria-hidden>
++       <path d="M0 0v12l10-6z"/>
++     </svg>
++   </span>
++   <span class="text-[0.76rem] tracking-[0.16em] uppercase">Watch Our Story</span>
++ </button>
+```
+
+## 3. `components/Origin.tsx`
+
+```diff
+- <section id="origin" class="bg-ivory">
+-   <div class="grid grid-cols-1 lg:grid-cols-2 min-h-[520px]">
++ <section id="origin" class="bg-ivory">
++   <div class="grid grid-cols-1 lg:grid-cols-2 min-h-[640px]">
+
+      <div class="flex flex-col justify-center px-8 lg:px-16 xl:px-24 py-20">
+-       <h2 class="text-[clamp(2.2rem,4vw,3.2rem)] font-normal leading-[1.1] text-black-deep mb-6">
++       <h2 class="text-[clamp(2rem,3.6vw,3.2rem)] font-normal leading-[1.1] text-black-deep mb-6">
+
+-       <p class="text-[0.92rem] text-muted leading-[1.8] max-w-sm mb-8">
++       <p class="text-[0.95rem] text-black-deep/70 leading-[1.8] max-w-md mb-8">
+
+-       <div><a class="link-gold">Discover Our Origin →</a></div>
++       <div><a class="link-gold" href="/about">Discover Our Origin →</a></div>
+
+-       <div class="relative mt-10 h-52 w-full max-w-xs overflow-hidden">
++       <div class="relative mt-12 h-64 w-full max-w-sm overflow-hidden rounded-sm">
+      </div>
+
+      <div class="relative flex flex-col items-center justify-center bg-black-rich px-6 py-16 lg:py-24">
+-       <div class="w-full max-w-lg">
++       <div class="w-full max-w-2xl">
+          <svg viewBox="0 0 800 420" class="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+            ...
+            {/* on every city <g>, add data-city for the CSS fallback: */}
+-           <g opacity="0">
++           <g data-city opacity="0">
+              <circle .../><text .../>
+            </g>
+          </svg>
+        </div>
+-       <p class="mt-6 text-center text-white/50 text-[0.8rem] tracking-[0.05em]">
++       <p class="mt-8 text-center text-white/55 text-[0.82rem] tracking-[0.06em]">
+          Exporting to <span class="text-gold font-medium">20+ Countries</span> Across 4 Continents
+        </p>
+      </div>
+    </div>
+  </section>
+```
+
+## 4. `components/Products.tsx`
+
+```diff
+  <section id="products" class="bg-black-deep py-24 lg:py-32">
+    <div class="max-w-[1440px] mx-auto px-6 lg:px-12">
+      <div class="flex items-end justify-between mb-14">
+-       <a class="link-gold hidden sm:flex">View All Products →</a>
++       <a class="link-gold hidden sm:inline-flex" href="/products">View All Products →</a>
+      </div>
+
+-     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5">
++     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5">
+        {/* card: */}
+-       <a class="group block">
++       <a class="group block" href={`/products/${slug}`}>
+          <div class="relative aspect-square overflow-hidden mb-4">
+-           <div class="absolute inset-0 border border-transparent group-hover:border-gold/40 transition-colors duration-300"></div>
++           <img class="absolute inset-0 w-full h-full object-cover transition-transform duration-[1.4s] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.06]" />
++           <div class="absolute inset-0 ring-1 ring-inset ring-transparent group-hover:ring-gold/40 transition-all duration-300"></div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+```
+
+## 5. `components/Stats.tsx` (the 0+ counters)
+
+```diff
+- <p class="text-[clamp(3rem,6vw,5rem)] font-light leading-none text-gold mb-3 tracking-tight">
+-   <span>0+</span>
+- </p>
++ <p class="text-[clamp(2.5rem,5.5vw,4.5rem)] font-light leading-none text-gold mb-3 tracking-tight">
++   <CounterUp to={42} suffix="+" />
++ </p>
+```
+
+Set the four values to the real targets: `42`, `3500`, `180`, `15` (or whatever your actual numbers are). The new component is below.
+
+## 6. `components/Certifications.tsx` + new `GlobalReach.tsx`
+
+The big restructure — split one bloated section into two:
+
+```diff
+- <section id="quality" class="bg-ivory py-24 lg:py-32">
+-   <div class="max-w-[1440px] mx-auto px-6 lg:px-12">
+-     <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24">
+-       <div>{/* certifications heading + 4 cert cards */}</div>
+-       <div>{/* GLOBAL REACH heading + 20+ country pills + 8 More */}</div>
+-     </div>
+-   </div>
+- </section>
+
++ <section id="quality" class="bg-ivory py-24 lg:py-32">
++   <div class="max-w-[1440px] mx-auto px-6 lg:px-12">
++     <div class="max-w-3xl mb-16">
++       <p class="section-label mb-5">Certifications</p>
++       <h2 class="text-[clamp(2rem,3.5vw,2.8rem)] font-normal text-black-deep leading-tight mb-4">
++         Quality You Can Trust
++       </h2>
++       <p class="text-[0.95rem] text-black-deep/65 leading-[1.8] max-w-xl">
++         Every batch is tested, certified, and compliant with international food safety
++         and export standards before it leaves our facility.
++       </p>
++     </div>
++     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
++       {certs.map(c => (
++         <div class="flex flex-col items-start p-6 bg-smoke border border-ivory-dark">
++           <div class="w-10 h-10 rounded-full border border-gold/30 flex items-center justify-center mb-5 bg-ivory">
++             {c.icon}
++           </div>
++           <p class="text-[0.95rem] font-medium text-black-deep mb-1">{c.title}</p>
++           <p class="text-[0.78rem] text-black-deep/55 leading-relaxed">{c.subtitle}</p>
++         </div>
++       ))}
++     </div>
++   </div>
++ </section>
+
++ <section id="reach" class="bg-ivory-dark py-24 lg:py-32 border-t border-black-deep/5">
++   <div class="max-w-[1440px] mx-auto px-6 lg:px-12">
++     <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
++       <div class="lg:col-span-5">
++         <p class="section-label mb-5">Global Reach</p>
++         <h2 class="text-[clamp(2rem,3.5vw,2.8rem)] font-normal text-black-deep leading-tight mb-4">
++           Delivering Goodness<br/>Across the World
++         </h2>
++         <p class="text-[0.95rem] text-black-deep/65 leading-[1.8] max-w-md">
++           Our supply chain spans four continents. We work directly with importers,
++           distributors and wholesalers to ensure seamless, reliable delivery at scale.
++         </p>
++       </div>
++       <div class="lg:col-span-7">
++         <div class="flex flex-wrap gap-2">
++           {countries.map(c => (
++             <span class="px-3.5 py-1.5 text-[0.7rem] tracking-[0.08em] border border-black-deep/15 text-black-deep/70 uppercase hover:border-gold/50 hover:text-gold transition-colors duration-200">
++               {c}
++             </span>
++           ))}
++           <span class="px-3.5 py-1.5 text-[0.7rem] tracking-[0.08em] border border-gold/40 text-gold uppercase">
++             + 8 More
++           </span>
++         </div>
++       </div>
++     </div>
++   </div>
++ </section>
+```
+
+## 7. `components/Gallery.tsx`
+
+```diff
+- <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
++ <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
+
+    {/* every tile: */}
+-   <a class="block relative">
+-     <img class="w-full" />
+-   </a>
++   <a class="group relative block aspect-[4/5] overflow-hidden">
++     <img class="absolute inset-0 w-full h-full object-cover transition-transform duration-[1.2s] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-105" />
++     <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/0 to-transparent"></div>
++     <div class="absolute inset-0 ring-1 ring-inset ring-transparent group-hover:ring-gold/30 transition-all duration-300"></div>
++     <span class="absolute bottom-4 left-4 text-[0.68rem] tracking-[0.2em] text-white/85 uppercase">
++       {label}
++     </span>
++   </a>
+```
+
+Also replace the off-brand cheese/bread placeholder with a spice-relevant image.
+
+## 8. `components/Contact.tsx` (the red "Let's Grow Together" section)
+
+```diff
+  <section id="contact" class="relative py-24 lg:py-32 overflow-hidden" style="background-color:#8B1E14">
+    <div class="absolute inset-0 opacity-10"></div>
+    <div class="relative max-w-[1440px] mx-auto px-6 lg:px-12">
+-     <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-start">
++     <div class="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-20 items-start">
+
+-       <div>
++       <div class="lg:col-span-5">
+          <p class="text-[0.65rem] tracking-[0.18em] text-white/50 uppercase mb-5">Request a Quote</p>
+-         <h2 class="text-[clamp(3rem,7vw,6rem)] font-light text-white leading-[0.95] mb-6">
++         <h2 class="text-[clamp(2.5rem,6vw,5rem)] font-light text-white leading-[0.95] mb-6">
+            Let's Grow<br/>Together
+          </h2>
+        </div>
+
+-       <div>
++       <div class="lg:col-span-7 bg-black-deep/15 border border-white/10 p-8 lg:p-10 backdrop-blur-sm">
+          <form class="flex flex-col gap-6">
+            {/* the global CSS above now styles input/select/textarea automatically */}
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+```
+
+## 9. `components/Footer.tsx`
+
+```diff
+- <div class="mb-5">
+-   <p class="text-[1.2rem] font-semibold tracking-[0.22em] text-smoke uppercase">Deccan</p>
+-   <p class="text-[0.6rem] tracking-[0.38em] text-gold uppercase">Harvests</p>
+- </div>
++ <div class="mb-5 flex items-baseline gap-2">
++   <span class="text-[1.05rem] font-semibold tracking-[0.25em] text-smoke uppercase font-[var(--font-space-grotesk)]">Deccan</span>
++   <span class="text-[1.05rem] font-semibold tracking-[0.25em] text-gold uppercase font-[var(--font-space-grotesk)]">Harvests</span>
++ </div>
+```
+
+---
+
+# New file: `components/CounterUp.tsx`
+
+```tsx
+'use client';
+
+import { useEffect, useRef } from 'react';
+import {
+  motion,
+  useInView,
+  useMotionValue,
+  useTransform,
+  animate,
+} from 'framer-motion';
+
+interface CounterUpProps {
+  to: number;
+  suffix?: string;
+  duration?: number;
+}
+
+export function CounterUp({ to, suffix = '+', duration = 2.2 }: CounterUpProps) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: '0px 0px -15% 0px' });
+  const mv = useMotionValue(0);
+  const rounded = useTransform(mv, (v) => `${Math.round(v).toLocaleString()}${suffix}`);
+
+  useEffect(() => {
+    if (!inView) return;
+    const controls = animate(mv, to, {
+      duration,
+      ease: [0.16, 1, 0.3, 1], // matches the rest of the site's "premium" easing
+    });
+    // hard fallback if Lenis/observer drift causes the value to stall
+    const fail = setTimeout(() => mv.set(to), duration * 1000 + 500);
+    return () => {
+      controls.stop();
+      clearTimeout(fail);
+    };
+  }, [inView, to, duration, mv]);
+
+  return <motion.span ref={ref}>{rounded}</motion.span>;
+}
+```
+
+Usage:
+
+```tsx
+<CounterUp to={42} suffix="+" />          {/* Countries */}
+<CounterUp to={3500} suffix="+" />        {/* Tons */}
+<CounterUp to={180} suffix="+" />         {/* Partners */}
+<CounterUp to={15} suffix="+" />          {/* Years */}
+```
+
+---
+
+# Order to apply
+
+Apply in this order — each step's effect will be visible before you start the next:
+
+The `globals.css` patch is step one and removes the largest class of visual bugs by itself (the grain overflow, the missing input styles, the motion fallbacks). Then the Hero changes restore the headline at all viewports. Then the Origin section's `max-w-2xl` + the `data-city` attribute restores the world map. Then the `CounterUp` component fixes the stuck zeros. Then the Certifications/GlobalReach split fixes the overlap. Then the Products/Gallery breakpoint changes clean up the right-edge clipping. Header polish, Contact form container, and Footer logo are last — they're all aesthetic improvements that only matter once the layout is correct.
+

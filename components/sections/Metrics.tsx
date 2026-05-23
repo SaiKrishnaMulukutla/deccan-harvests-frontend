@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Globe, Package, Users, CalendarDays } from "lucide-react";
+import { CounterUp } from "@/components/ui/CounterUp";
 
 const STATS = [
   { icon: Globe,        value: 20,   suffix: "+", label: "Countries Exported",  subLabel: "Across 4 continents" },
@@ -11,35 +12,6 @@ const STATS = [
   { icon: CalendarDays, value: 15,   suffix: "+", label: "Years Experience",     subLabel: "Since 2009" },
 ];
 
-function CountUp({ target, suffix, active }: { target: number; suffix: string; active: boolean }) {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    if (!active) return;
-    let start = 0;
-    const duration = 1800;
-    const step = 16;
-    const increment = target / (duration / step);
-    const timer = setInterval(() => {
-      start += increment;
-      if (start >= target) {
-        setCount(target);
-        clearInterval(timer);
-      } else {
-        setCount(Math.floor(start));
-      }
-    }, step);
-    return () => clearInterval(timer);
-  }, [active, target]);
-
-  return (
-    <span>
-      {count}
-      {suffix}
-    </span>
-  );
-}
-
 export default function Metrics() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
@@ -47,7 +19,7 @@ export default function Metrics() {
   return (
     <section ref={ref} className="bg-ivory py-20 lg:py-24">
       <div className="max-w-[1440px] mx-auto px-6 lg:px-12">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8">
           {STATS.map(({ icon: Icon, value, suffix, label, subLabel }, i) => (
             <motion.div
               key={label}
@@ -62,10 +34,10 @@ export default function Metrics() {
                 strokeWidth={1.2}
               />
               <p
-                className="text-[clamp(3rem,6vw,5rem)] font-light leading-none text-gold mb-3 tracking-tight"
+                className="text-[clamp(2.5rem,5.5vw,4.5rem)] font-light leading-none text-gold mb-3 tracking-tight"
                 style={{ fontFamily: "var(--font-cormorant)" }}
               >
-                <CountUp target={value} suffix={suffix} active={inView} />
+                <CounterUp to={value} suffix={suffix} />
               </p>
               <p
                 className="text-[0.78rem] font-medium text-black-deep tracking-[0.06em] mb-1 uppercase"
