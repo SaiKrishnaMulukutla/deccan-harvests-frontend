@@ -75,13 +75,12 @@ export default function RFQForm() {
   return (
     <motion.div
       ref={ref}
-      className="bg-black-rich/40 backdrop-blur-sm p-8 lg:p-10"
       initial={{ opacity: 0, y: 30 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.9, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
     >
       {submitted ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center gap-4">
+        <div className="flex flex-col items-center justify-center py-16 text-center gap-4">
           <CheckCircle size={40} className="text-gold" strokeWidth={1} />
           <h3 className="text-2xl text-smoke font-light" style={{ fontFamily: "var(--font-playfair)" }}>
             Request Received
@@ -92,6 +91,21 @@ export default function RFQForm() {
         </div>
       ) : (
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+          {/* Form header */}
+          <div className="pb-6 border-b border-white/10">
+            <h3
+              className="text-[1.4rem] font-light text-smoke mb-1"
+              style={{ fontFamily: "var(--font-playfair)" }}
+            >
+              Tell us what you need
+            </h3>
+            <p
+              className="text-[0.78rem] text-white/40"
+              style={{ fontFamily: "var(--font-inter)" }}
+            >
+              We respond within 24 hours with pricing and availability.
+            </p>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <InputField label="Your Name" error={errors.name?.message}>
               <input {...register("name")} placeholder="John Smith" className={`${inputClass} w-full`} style={{ fontFamily: "var(--font-inter)" }} />

@@ -46,15 +46,15 @@ export default function Navbar() {
       >
         <nav className="max-w-[1440px] mx-auto px-6 lg:px-12 h-20 flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex flex-col leading-none group">
+          <Link href="/" className="flex items-baseline gap-2 group">
             <span
-              className="text-[1.35rem] font-semibold tracking-[0.22em] text-smoke uppercase"
+              className="text-[1.05rem] font-semibold tracking-[0.25em] text-smoke uppercase"
               style={{ fontFamily: "var(--font-space-grotesk)" }}
             >
               Deccan
             </span>
             <span
-              className="text-[0.62rem] tracking-[0.38em] text-gold uppercase -mt-0.5 ml-0.5"
+              className="text-[1.05rem] font-semibold tracking-[0.25em] text-gold uppercase"
               style={{ fontFamily: "var(--font-space-grotesk)" }}
             >
               Harvests
@@ -109,11 +109,19 @@ export default function Navbar() {
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           >
             <div className="flex justify-between items-center">
-              <span
-                className="text-[1.1rem] tracking-[0.22em] text-smoke uppercase font-semibold"
-                style={{ fontFamily: "var(--font-space-grotesk)" }}
-              >
-                Deccan <span className="text-gold">Harvests</span>
+              <span className="flex items-baseline gap-2">
+                <span
+                  className="text-[1.05rem] tracking-[0.25em] text-smoke uppercase font-semibold"
+                  style={{ fontFamily: "var(--font-space-grotesk)" }}
+                >
+                  Deccan
+                </span>
+                <span
+                  className="text-[1.05rem] tracking-[0.25em] text-gold uppercase font-semibold"
+                  style={{ fontFamily: "var(--font-space-grotesk)" }}
+                >
+                  Harvests
+                </span>
               </span>
               <button
                 onClick={() => setMobileOpen(false)}

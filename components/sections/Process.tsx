@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useLayoutEffect } from "react";
+import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import Image from "next/image";
 import { Sprout, SlidersHorizontal, Sun, FlaskConical, BoxSelect, Ship } from "lucide-react";
@@ -46,34 +46,7 @@ const STEPS = [
 
 export default function Process() {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const lineRef = useRef<SVGLineElement>(null);
   const inView = useInView(sectionRef, { once: true, margin: "-80px" });
-
-  useLayoutEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const initGSAP = async () => {
-      const { gsap } = await import("gsap");
-      const { ScrollTrigger } = await import("gsap/ScrollTrigger");
-      gsap.registerPlugin(ScrollTrigger);
-
-      if (!lineRef.current || !sectionRef.current) return;
-
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 60%",
-          end: "bottom 80%",
-          scrub: 1.5,
-        },
-      });
-
-      gsap.set(lineRef.current, { strokeDasharray: 1000, strokeDashoffset: 1000 });
-      tl.to(lineRef.current, { strokeDashoffset: 0, ease: "none" });
-    };
-
-    initGSAP();
-  }, []);
 
   return (
     <section
@@ -105,62 +78,54 @@ export default function Process() {
               From Farm to World<br />With Care
             </motion.h2>
 
-            {/* Connecting line SVG */}
-            <div className="relative mb-4">
-              <svg
-                className="absolute top-5 left-5 hidden lg:block"
-                width="100%"
-                height="2"
-                style={{ overflow: "visible" }}
-              >
-                <line
-                  ref={lineRef}
-                  x1="0" y1="1" x2="100%" y2="1"
-                  stroke="#C9A84C"
-                  strokeWidth="1"
-                  strokeOpacity="0.4"
-                />
-              </svg>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-10">
-                {STEPS.map(({ number, icon: Icon, title, description }, i) => (
-                  <motion.div
-                    key={number}
-                    className="flex flex-col"
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={inView ? { opacity: 1, y: 0 } : {}}
-                    transition={{
-                      duration: 0.7,
-                      delay: 0.3 + i * 0.1,
-                      ease: [0.16, 1, 0.3, 1],
-                    }}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-12">
+              {STEPS.map(({ number, icon: Icon, title, description }, i) => (
+                <motion.div
+                  key={number}
+                  className="relative flex flex-col"
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={inView ? { opacity: 1, y: 0 } : {}}
+                  transition={{
+                    duration: 0.7,
+                    delay: 0.3 + i * 0.1,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                >
+                  {/* Large Cormorant numeral — depth layer */}
+                  <span
+                    className="absolute -top-3 -left-1 text-[4.5rem] leading-none text-gold/[0.07] select-none pointer-events-none"
+                    style={{ fontFamily: "var(--font-cormorant)" }}
+                    aria-hidden
                   >
-                    <div className="flex items-center gap-2.5 mb-3">
-                      <div className="w-10 h-10 rounded-full border border-gold/30 flex items-center justify-center flex-shrink-0 bg-black-deep">
-                        <Icon size={16} className="text-gold" strokeWidth={1.5} />
-                      </div>
-                      <span
-                        className="text-[0.65rem] text-gold/50 tracking-[0.15em] uppercase"
-                        style={{ fontFamily: "var(--font-space-grotesk)" }}
-                      >
-                        {number}
-                      </span>
+                    {number}
+                  </span>
+
+                  <div className="flex items-center gap-2.5 mb-4 relative">
+                    <div className="w-10 h-10 rounded-full border border-gold/30 flex items-center justify-center flex-shrink-0 bg-black-deep">
+                      <Icon size={16} className="text-gold" strokeWidth={1.5} />
                     </div>
-                    <h3
-                      className="text-[0.9rem] font-medium text-smoke mb-1.5 uppercase tracking-[0.06em]"
+                    <span
+                      className="text-[0.62rem] text-gold/40 tracking-[0.18em] uppercase"
                       style={{ fontFamily: "var(--font-space-grotesk)" }}
                     >
-                      {title}
-                    </h3>
-                    <p
-                      className="text-[0.76rem] text-white/40 leading-relaxed"
-                      style={{ fontFamily: "var(--font-inter)" }}
-                    >
-                      {description}
-                    </p>
-                  </motion.div>
-                ))}
-              </div>
+                      {number}
+                    </span>
+                  </div>
+
+                  <h3
+                    className="text-[0.88rem] font-medium text-smoke mb-2 uppercase tracking-[0.07em]"
+                    style={{ fontFamily: "var(--font-space-grotesk)" }}
+                  >
+                    {title}
+                  </h3>
+                  <p
+                    className="text-[0.76rem] text-white/40 leading-relaxed"
+                    style={{ fontFamily: "var(--font-inter)" }}
+                  >
+                    {description}
+                  </p>
+                </motion.div>
+              ))}
             </div>
           </div>
 

@@ -78,70 +78,70 @@ export default async function QualityPage() {
           </p>
 
           {certs.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="divide-y divide-ivory-dark">
               {certs.map((cert) => {
                 const renewalPending = isExpiringWithin(cert.expiresAt);
                 const Icon = findCertIcon(cert.name);
 
                 return (
-                  <div key={cert.id} className="relative p-6 bg-smoke border border-ivory-dark">
-                    {renewalPending && (
-                      <span
-                        className="absolute top-4 right-4 px-2.5 py-1 text-[0.6rem] tracking-widest uppercase bg-gold/20 text-gold border border-gold/30"
-                        style={{ fontFamily: "var(--font-space-grotesk)" }}
-                      >
-                        Renewal Pending
-                      </span>
-                    )}
-                    <div className="w-10 h-10 rounded-full border border-gold/30 flex items-center justify-center mb-5 bg-ivory">
+                  <div key={cert.id} className="flex items-start gap-6 lg:gap-10 py-8">
+                    <div className="w-10 h-10 rounded-full border border-gold/30 flex items-center justify-center flex-shrink-0 bg-ivory">
                       <Icon size={17} className="text-gold" strokeWidth={1.5} />
                     </div>
-                    <h3
-                      className="text-[0.88rem] font-semibold text-black-deep mb-1 tracking-[0.03em]"
-                      style={{ fontFamily: "var(--font-space-grotesk)" }}
-                    >
-                      {cert.name}
-                    </h3>
-                    <p
-                      className="text-[0.72rem] text-muted leading-relaxed mb-4"
-                      style={{ fontFamily: "var(--font-inter)" }}
-                    >
-                      {cert.issuingBody}
-                    </p>
-                    <div
-                      className="text-[0.7rem] text-black-deep/50 space-y-1 mb-4"
-                      style={{ fontFamily: "var(--font-inter)" }}
-                    >
-                      {cert.certNumber && <p>No. {cert.certNumber}</p>}
-                      <p>Issued {formatDisplayDate(cert.issuedAt)}</p>
-                      {cert.expiresAt && <p>Valid until {formatDisplayDate(cert.expiresAt)}</p>}
+                    <div className="flex-1 grid grid-cols-1 lg:grid-cols-[200px_1fr_1fr_auto] gap-2 lg:gap-8 items-start">
+                      <div>
+                        <p className="text-[0.82rem] font-semibold text-black-deep tracking-[0.04em]" style={{ fontFamily: "var(--font-space-grotesk)" }}>
+                          {cert.name}
+                        </p>
+                        {renewalPending && (
+                          <span className="inline-block mt-1 px-2 py-0.5 text-[0.58rem] tracking-widest uppercase bg-gold/20 text-gold border border-gold/30" style={{ fontFamily: "var(--font-space-grotesk)" }}>
+                            Renewal Pending
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[0.75rem] text-muted leading-relaxed" style={{ fontFamily: "var(--font-inter)" }}>
+                        {cert.issuingBody}
+                      </p>
+                      <div className="text-[0.72rem] text-black-deep/50 space-y-0.5" style={{ fontFamily: "var(--font-inter)" }}>
+                        {cert.certNumber && <p>No. {cert.certNumber}</p>}
+                        <p>Issued {formatDisplayDate(cert.issuedAt)}</p>
+                        {cert.expiresAt && <p>Valid until {formatDisplayDate(cert.expiresAt)}</p>}
+                      </div>
+                      {cert.fileUrl && (
+                        <a
+                          href={cert.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-[0.68rem] text-gold tracking-[0.06em] uppercase hover:text-gold-dark transition-colors whitespace-nowrap"
+                          style={{ fontFamily: "var(--font-space-grotesk)" }}
+                        >
+                          Download <ExternalLink size={10} />
+                        </a>
+                      )}
                     </div>
-                    {cert.fileUrl && (
-                      <a
-                        href={cert.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-[0.7rem] text-gold tracking-[0.06em] uppercase hover:text-gold-dark transition-colors"
-                        style={{ fontFamily: "var(--font-space-grotesk)" }}
-                      >
-                        Download Certificate <ExternalLink size={11} />
-                      </a>
-                    )}
                   </div>
                 );
               })}
             </div>
           ) : (
-            /* Static fallback if DB is empty */
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+            /* Static fallback — horizontal register list */
+            <div className="divide-y divide-ivory-dark">
               {STATIC_CERTS.map(({ icon: Icon, name, body, desc }) => (
-                <div key={name} className="flex flex-col items-start p-6 border border-ivory-dark bg-smoke">
-                  <div className="w-10 h-10 rounded-full border border-gold/30 flex items-center justify-center mb-4 bg-ivory">
+                <div key={name} className="flex items-start gap-6 lg:gap-10 py-8">
+                  <div className="w-10 h-10 rounded-full border border-gold/30 flex items-center justify-center flex-shrink-0 bg-ivory">
                     <Icon size={17} className="text-gold" strokeWidth={1.5} />
                   </div>
-                  <p className="text-[0.82rem] font-semibold text-black-deep mb-1 tracking-[0.04em]" style={{ fontFamily: "var(--font-space-grotesk)" }}>{name}</p>
-                  <p className="text-[0.7rem] text-muted leading-relaxed" style={{ fontFamily: "var(--font-inter)" }}>{body}</p>
-                  <p className="text-[0.68rem] text-muted/70 mt-1" style={{ fontFamily: "var(--font-inter)" }}>{desc}</p>
+                  <div className="flex-1 grid grid-cols-1 lg:grid-cols-[200px_1fr_1fr] gap-2 lg:gap-8 items-start">
+                    <p className="text-[0.82rem] font-semibold text-black-deep tracking-[0.04em]" style={{ fontFamily: "var(--font-space-grotesk)" }}>
+                      {name}
+                    </p>
+                    <p className="text-[0.75rem] text-muted leading-relaxed" style={{ fontFamily: "var(--font-inter)" }}>
+                      {body}
+                    </p>
+                    <p className="text-[0.72rem] text-muted/70" style={{ fontFamily: "var(--font-inter)" }}>
+                      {desc}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>

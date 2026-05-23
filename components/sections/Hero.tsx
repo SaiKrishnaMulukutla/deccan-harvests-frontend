@@ -24,16 +24,26 @@ export default function Hero() {
 
   return (
     <section className="relative w-full h-screen min-h-[600px] flex items-center overflow-hidden bg-black-deep">
-      {/* ── Video Background ── */}
+      {/* ── Fallback Background Image (shown until video loads or when no video) ── */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage:
+            "url('https://images.pexels.com/photos/2802527/pexels-photo-2802527.jpeg?auto=compress&cs=tinysrgb&w=1920')",
+        }}
+        aria-hidden
+      />
+
+      {/* ── Video Background (overlays image when loaded) ── */}
       <video
         className="absolute inset-0 w-full h-full object-cover"
         autoPlay
         muted
         loop
         playsInline
-        poster="/images/hero-poster.jpg"
+        poster="https://images.pexels.com/photos/2802527/pexels-photo-2802527.jpeg?auto=compress&cs=tinysrgb&w=1920"
       >
-        {/* Replace with your actual drone footage */}
+        {/* Replace src with real drone footage when available */}
         <source src="/videos/hero.mp4" type="video/mp4" />
       </video>
 
@@ -56,7 +66,7 @@ export default function Hero() {
       />
 
       {/* ── Content ── */}
-      <div className="relative z-10 w-full max-w-[1440px] mx-auto px-6 lg:px-24 flex flex-col">
+      <div className="relative z-10 w-full max-w-[1440px] mx-auto px-6 lg:px-12 flex flex-col">
 
         {/* Eyebrow */}
         <motion.p

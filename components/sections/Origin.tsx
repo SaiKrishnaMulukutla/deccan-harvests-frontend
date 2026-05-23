@@ -94,7 +94,6 @@ export default function Origin() {
               className="object-cover"
               sizes="400px"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-ivory/60 to-transparent" />
           </motion.div>
         </div>
 

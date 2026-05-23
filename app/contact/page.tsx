@@ -8,10 +8,18 @@ import Footer from "@/components/layout/Footer";
 import RFQForm from "@/components/ui/RFQForm";
 
 const CONTACT_ITEMS = [
-  { icon: Phone,  label: "Phone",   value: "+91 98765 43210",          href: "tel:+919876543210" },
-  { icon: Mail,   label: "Email",   value: "exports@deccanharvests.com", href: "mailto:exports@deccanharvests.com" },
+  { icon: Phone,  label: "Phone",   value: "+91 98765 43210",                    href: "tel:+919876543210" },
+  { icon: Mail,   label: "Email",   value: "exports@deccanharvests.com",          href: "mailto:exports@deccanharvests.com" },
   { icon: MapPin, label: "Address", value: "Guntur, Andhra Pradesh — 522 001, India", href: null },
 ];
+
+const JOURNEY_STEPS = [
+  { number: "01", label: "Share your specs" },
+  { number: "02", label: "Pricing in 24 hours" },
+  { number: "03", label: "Ship worldwide" },
+];
+
+const CERT_BADGES = ["ISO 22000", "HACCP", "APEDA", "Spices Board", "FSSAI"];
 
 const FAQS = [
   {
@@ -50,7 +58,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
         aria-expanded={open}
       >
         <span
-          className="text-[0.88rem] text-smoke/80 group-hover:text-smoke transition-colors"
+          className="text-[0.88rem] text-smoke/80"
           style={{ fontFamily: "var(--font-inter)" }}
         >
           {q}
@@ -87,53 +95,134 @@ export default function ContactPage() {
     <main className="bg-black-deep min-h-screen">
       <Navbar />
 
-      {/* ── Main Contact Section ── */}
-      <section
-        className="relative py-24 lg:py-32 overflow-hidden bg-red-chilli-deep"
-      >
+      {/* ── Section 1: Narrative Hero ── */}
+      <section className="relative pt-40 pb-24 bg-black-deep overflow-hidden">
+        {/* Subtle texture */}
         <div
-          className="absolute inset-0 opacity-10"
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(201,168,76,0.5) 60px, rgba(201,168,76,0.5) 61px)",
+          }}
+          aria-hidden
+        />
+
+        <div className="relative max-w-[1440px] mx-auto px-6 lg:px-12">
+          <motion.p
+            className="section-label mb-6"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          >
+            Get in Touch
+          </motion.p>
+
+          <motion.h1
+            className="text-[clamp(2.8rem,7vw,6rem)] font-light text-smoke leading-[0.95] max-w-3xl mb-8"
+            style={{ fontFamily: "var(--font-cormorant)" }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          >
+            Every Great<br />Partnership Starts with<br />a Conversation
+          </motion.h1>
+
+          <motion.p
+            className="text-[0.9rem] text-white/50 max-w-md leading-relaxed mb-14"
+            style={{ fontFamily: "var(--font-inter)" }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          >
+            We&apos;ve shipped to 20+ countries. Tell us where you want to go next.
+          </motion.p>
+
+          {/* 3-step journey */}
+          <motion.div
+            className="flex flex-wrap items-center gap-0"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {JOURNEY_STEPS.map(({ number, label }, i) => (
+              <div key={number} className="flex items-center">
+                <div className="flex items-center gap-3 px-5 first:pl-0">
+                  <span
+                    className="text-[0.6rem] text-gold/40 tracking-[0.18em] uppercase"
+                    style={{ fontFamily: "var(--font-space-grotesk)" }}
+                  >
+                    {number}
+                  </span>
+                  <span
+                    className="text-[0.82rem] text-white/60"
+                    style={{ fontFamily: "var(--font-inter)" }}
+                  >
+                    {label}
+                  </span>
+                </div>
+                {i < JOURNEY_STEPS.length - 1 && (
+                  <span className="text-white/15 px-2 hidden sm:block">→</span>
+                )}
+              </div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── Section 2: Form + Trust ── */}
+      <section className="relative py-24 bg-red-chilli-deep overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-[0.06]"
           style={{
             backgroundImage:
               "repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.05) 40px, rgba(255,255,255,0.05) 41px)",
           }}
+          aria-hidden
         />
 
-        <div className="relative max-w-[1440px] mx-auto px-6 lg:px-12 pt-20">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-start">
+        <div className="relative max-w-[1440px] mx-auto px-6 lg:px-12">
+          <div className="grid grid-cols-1 lg:grid-cols-[5fr_7fr] gap-16 lg:gap-24 items-start">
 
-            {/* Left: Heading + Contact Info + Map */}
+            {/* Left: Trust column */}
             <div>
               <p
-                className="text-[0.65rem] tracking-[0.18em] text-white/50 uppercase mb-5"
+                className="text-[0.62rem] tracking-[0.2em] text-white/40 uppercase mb-7"
                 style={{ fontFamily: "var(--font-space-grotesk)" }}
               >
-                Get in Touch
+                Who We Work With
               </p>
-              <h1
-                className="text-[clamp(3rem,7vw,6rem)] font-light text-white leading-[0.95] mb-6"
-                style={{ fontFamily: "var(--font-cormorant)" }}
-              >
-                Let&apos;s Grow<br />Together
-              </h1>
               <p
-                className="text-[0.88rem] text-white/60 leading-relaxed max-w-sm mb-10"
+                className="text-[0.92rem] text-white/70 leading-[1.8] mb-10"
                 style={{ fontFamily: "var(--font-inter)" }}
               >
-                We work directly with importers, wholesalers and distributors.
-                Share your requirements and we&apos;ll respond within 24 hours
-                with pricing, specifications and availability.
+                We partner directly with importers, distributors and wholesale
+                buyers across the Middle East, Europe, South-East Asia and North
+                America. If you move volume, we want to talk.
               </p>
 
-              <div className="flex flex-col gap-5 mb-10">
+              {/* Cert badges */}
+              <div className="flex flex-wrap gap-2 mb-12">
+                {CERT_BADGES.map((cert) => (
+                  <span
+                    key={cert}
+                    className="px-3 py-1.5 text-[0.62rem] tracking-[0.1em] uppercase border border-white/20 text-white/50"
+                    style={{ fontFamily: "var(--font-space-grotesk)" }}
+                  >
+                    {cert}
+                  </span>
+                ))}
+              </div>
+
+              {/* Contact details */}
+              <div className="flex flex-col gap-5">
                 {CONTACT_ITEMS.map(({ icon: Icon, label, value, href }) => (
                   <div key={label} className="flex items-center gap-4">
-                    <div className="w-9 h-9 rounded-full border border-white/20 flex items-center justify-center flex-shrink-0">
-                      <Icon size={14} className="text-white/50" strokeWidth={1.5} />
+                    <div className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center flex-shrink-0">
+                      <Icon size={13} className="text-white/40" strokeWidth={1.5} />
                     </div>
                     <div>
                       <p
-                        className="text-[0.6rem] text-white/30 uppercase tracking-widest mb-0.5"
+                        className="text-[0.58rem] text-white/30 uppercase tracking-widest mb-0.5"
                         style={{ fontFamily: "var(--font-space-grotesk)" }}
                       >
                         {label}
@@ -141,14 +230,14 @@ export default function ContactPage() {
                       {href ? (
                         <a
                           href={href}
-                          className="text-[0.85rem] text-white/70 hover:text-white transition-colors"
+                          className="text-[0.82rem] text-white/65 hover:text-white transition-colors"
                           style={{ fontFamily: "var(--font-inter)" }}
                         >
                           {value}
                         </a>
                       ) : (
                         <p
-                          className="text-[0.85rem] text-white/70"
+                          className="text-[0.82rem] text-white/65"
                           style={{ fontFamily: "var(--font-inter)" }}
                         >
                           {value}
@@ -158,20 +247,6 @@ export default function ContactPage() {
                   </div>
                 ))}
               </div>
-
-              {/* Map Embed */}
-              <div className="w-full aspect-video overflow-hidden border border-white/20 opacity-80">
-                <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d122028.04823296!2d80.3765!3d16.3067!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a4a74e12b7b1d6b%3A0x100a1c7a5e!2sGuntur%2C%20Andhra%20Pradesh!5e0!3m2!1sen!2sin!4v1"
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  allowFullScreen={false}
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title="Guntur, Andhra Pradesh — Deccan Harvests"
-                />
-              </div>
             </div>
 
             {/* Right: RFQ Form */}
@@ -180,7 +255,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* ── FAQ ── */}
+      {/* ── Section 3: FAQ ── */}
       <section className="py-24 bg-black-deep">
         <div className="max-w-[1440px] mx-auto px-6 lg:px-12">
           <div className="max-w-2xl mx-auto">
