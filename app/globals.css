@@ -1,26 +1,121 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* ── Brand Colors ── */
+  --color-gold:            #C9A84C;
+  --color-gold-light:      #E8C97A;
+  --color-gold-dark:       #A07830;
+  --color-black-deep:      #0A0A0A;
+  --color-black-rich:      #111111;
+  --color-ivory:           #F5F0E8;
+  --color-ivory-dark:      #EDE8DC;
+  --color-red-chilli:      #A0291E;
+  --color-red-chilli-deep: #8B1E14;
+  --color-smoke:           #FAFAF8;
+  --color-muted:           #6B6560;
+
+  /* ── Typography ── */
+  --font-display:  var(--font-cormorant);
+  --font-serif:    var(--font-playfair);
+  --font-sans:     var(--font-inter);
+  --font-grotesk:  var(--font-space-grotesk);
+
+  /* ── Easing ── */
+  --ease-cinema:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth:  cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ── Base ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: auto; /* Lenis handles this */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #0A0A0A;
+  color: #FAFAF8;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+/* ── Film Grain Texture ── */
+.grain {
+  position: fixed;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain-shift 8s steps(10) infinite;
+}
+
+@keyframes grain-shift {
+  0%   { transform: translate(0,    0   ) }
+  10%  { transform: translate(-2%, -3%  ) }
+  20%  { transform: translate(3%,   2%  ) }
+  30%  { transform: translate(-1%,  4%  ) }
+  40%  { transform: translate(4%,  -2%  ) }
+  50%  { transform: translate(-3%,  1%  ) }
+  60%  { transform: translate(2%,   3%  ) }
+  70%  { transform: translate(-4%, -1%  ) }
+  80%  { transform: translate(1%,  -4%  ) }
+  90%  { transform: translate(-2%,  2%  ) }
+  100% { transform: translate(0,    0   ) }
+}
+
+/* ── Gold underline link ── */
+.link-gold {
+  position: relative;
+  color: var(--color-gold);
+  font-family: var(--font-space-grotesk), sans-serif;
+  font-size: 0.8125rem;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.link-gold::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--color-gold);
+  transition: width 0.3s var(--ease-smooth);
+}
+
+.link-gold:hover::after { width: 100%; }
+
+/* ── Section label ── */
+.section-label {
+  font-family: var(--font-space-grotesk), sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar              { width: 4px; }
+::-webkit-scrollbar-track        { background: #0A0A0A; }
+::-webkit-scrollbar-thumb        { background: #C9A84C; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover  { background: #E8C97A; }
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  .grain { animation: none; }
 }
