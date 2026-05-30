@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond, Playfair_Display, Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import SmoothScrollProvider from "@/components/providers/SmoothScrollProvider";
+import { apiFetch } from "@/lib/api";
 
 const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
@@ -43,15 +44,29 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // Health check — cached for 60s so it doesn't hit the backend on every request.
+  // Returns null if backend is down or unreachable.
+  const health = await apiFetch<{ status: string }>("/api/v1/health", { revalidate: 60 });
+  const isBackendDown = !health;
+
   return (
     <html
       lang="en"
       className={`${cormorant.variable} ${playfair.variable} ${inter.variable} ${spaceGrotesk.variable} h-full`}
     >
       <body className="min-h-full antialiased">
+        {isBackendDown && (
+          <div
+            className="w-full py-2.5 px-4 text-center text-[0.72rem] tracking-[0.06em] bg-red-900/80 text-white/80"
+            style={{ fontFamily: "var(--font-inter)" }}
+            role="alert"
+          >
+            We&apos;re experiencing a temporary issue — quote submissions are unavailable right now. Please try again shortly.
+          </div>
+        )}
         {/* Film grain overlay */}
         <div className="grain" aria-hidden="true" />
         <SmoothScrollProvider>

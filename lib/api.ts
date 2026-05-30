@@ -11,7 +11,7 @@ interface FetchOptions extends Omit<RequestInit, "next"> {
 }
 
 /**
- * Central fetch wrapper for all server-side API calls.
+ * Server-side fetch wrapper (Server Components, Route Handlers).
  *
  * - Unwraps the `{ data: T }` response envelope.
  * - Returns `null` on network errors or non-2xx responses (never throws).
@@ -35,4 +35,44 @@ export async function apiFetch<T>(
   } catch {
     return null;
   }
+}
+
+// ── Client-side API ───────────────────────────────────────────────────────────
+
+/** Structured error from the backend, including the request ID for support. */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public readonly requestId: string | undefined,
+    public readonly status: number,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
+/**
+ * Client-side fetch wrapper (Client Components / form submissions).
+ *
+ * - Includes cookies on every request (`credentials: 'include'`).
+ * - Throws `ApiError` on non-2xx so callers can branch on `status`.
+ * - Unwraps the `{ data: T }` response envelope on success.
+ */
+export async function clientFetch<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const res = await fetch(apiUrl(path), { ...options, credentials: "include" });
+  const json: { data?: T; message?: string; requestId?: string } =
+    await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    throw new ApiError(
+      json.message ?? "Something went wrong. Please try again.",
+      json.requestId,
+      res.status,
+    );
+  }
+
+  return (json.data ?? json) as T;
 }

@@ -13,13 +13,27 @@ export async function generateStaticParams() {
   return products.map((p) => ({ slug: p.slug }));
 }
 
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://deccanharvests.com";
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const product = await apiFetch<Product>(`/api/v1/products/slug/${slug}`, { revalidate: 3600 });
   if (!product) return { title: "Product Not Found" };
+
+  const description = product.description ?? `Premium ${product.name} exported from Guntur, Andhra Pradesh, India.`;
+  const imageUrl = product.images[0]?.url;
+
   return {
-    title: product.name,
-    description: product.description ?? `Premium ${product.name} exported from Guntur, India.`,
+    title: `${product.name} — Deccan Harvests`,
+    description,
+    openGraph: {
+      title: `${product.name} — Deccan Harvests`,
+      description,
+      type: "website",
+      url: `${BASE_URL}/products/${slug}`,
+      siteName: "Deccan Harvests",
+      ...(imageUrl ? { images: [{ url: imageUrl, alt: product.name }] } : {}),
+    },
   };
 }
 
@@ -40,6 +54,22 @@ export default async function ProductDetailPage({
   const related = (allProducts ?? []).filter((p) => p.slug !== slug).slice(0, 3);
   const formats = getProductFormats(slug);
 
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description ?? undefined,
+    brand: { "@type": "Brand", name: "Deccan Harvests" },
+    url: `${BASE_URL}/products/${slug}`,
+    ...(imageUrl ? { image: imageUrl } : {}),
+    ...(product.variety ? { additionalProperty: [{ "@type": "PropertyValue", name: "Variety", value: product.variety }] } : {}),
+    offers: {
+      "@type": "Offer",
+      availability: "https://schema.org/InStock",
+      seller: { "@type": "Organization", name: "Deccan Harvests" },
+    },
+  };
+
   const specs: { label: string; value: string }[] = [
     product.variety   ? { label: "Variety",            value: product.variety } : null,
     product.shuMin && product.shuMax
@@ -53,6 +83,10 @@ export default async function ProductDetailPage({
 
   return (
     <main className="bg-black-deep min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
       <Navbar />
 
       <div className="max-w-[1440px] mx-auto px-6 lg:px-12 pt-36 pb-24">

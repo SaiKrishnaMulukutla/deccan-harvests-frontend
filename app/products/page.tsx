@@ -8,10 +8,19 @@ import { deriveProductCategory } from "@/lib/utils";
 import { PRODUCT_CATEGORIES } from "@/lib/constants";
 import type { Product } from "@/lib/types";
 
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://deccanharvests.com";
+
 export const metadata = {
-  title: "Our Products",
+  title: "Our Products — Deccan Harvests",
   description:
     "Browse our full range of premium Guntur chilli varieties, turmeric, coffee and spice powders. Certified, consistent and export-ready.",
+  openGraph: {
+    title: "Our Products — Deccan Harvests",
+    description: "Premium Guntur chilli, turmeric, coffee and spice exports. Certified and export-ready.",
+    type: "website",
+    url: `${BASE_URL}/products`,
+    siteName: "Deccan Harvests",
+  },
 };
 
 export default async function ProductsPage({

@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import NewsletterForm from "@/components/ui/NewsletterForm";
 
 const QUICK_LINKS = [
   { label: "Home",        href: "/" },
@@ -53,6 +54,28 @@ export default function Footer() {
       <div className="h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
 
       <div className="max-w-[1440px] mx-auto px-6 lg:px-12 py-16 lg:py-20">
+
+        {/* Newsletter row */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-12 mb-12 border-b border-white/8">
+          <div>
+            <p
+              className="text-[0.65rem] tracking-[0.18em] text-white/30 uppercase mb-1.5"
+              style={{ fontFamily: "var(--font-space-grotesk)" }}
+            >
+              Stay Updated
+            </p>
+            <p
+              className="text-[0.8rem] text-white/40 max-w-xs"
+              style={{ fontFamily: "var(--font-inter)" }}
+            >
+              Trade updates, harvest reports, and seasonal availability.
+            </p>
+          </div>
+          <div className="w-full sm:w-72 shrink-0">
+            <NewsletterForm />
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8">
 
           {/* Brand */}

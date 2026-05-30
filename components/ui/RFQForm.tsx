@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Send, CheckCircle } from "lucide-react";
 import { RFQ_COUNTRIES, RFQ_PRODUCTS } from "@/lib/constants";
+import { clientFetch, ApiError } from "@/lib/api";
 
 const schema = z.object({
   name:     z.string().min(2, "Name must be at least 2 characters"),
@@ -55,20 +56,23 @@ export default function RFQForm() {
   const onSubmit = async (data: FormData) => {
     setSubmitError(null);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-      const res = await fetch(`${apiUrl}/api/v1/rfq`, {
+      await clientFetch("/api/v1/rfq", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        setSubmitError(err?.error?.message || "Failed to submit. Please try again.");
-        return;
-      }
       setSubmitted(true);
-    } catch {
-      setSubmitError("Network error. Please check your connection and try again.");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.status === 429) {
+          setSubmitError("Too many submissions — please try again in a few minutes.");
+        } else {
+          const ref = err.requestId ? ` (ref: ${err.requestId.slice(0, 8)})` : "";
+          setSubmitError(`${err.message}${ref}`);
+        }
+      } else {
+        setSubmitError("Network error. Please check your connection and try again.");
+      }
     }
   };
 

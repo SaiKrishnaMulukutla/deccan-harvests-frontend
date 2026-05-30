@@ -6,10 +6,19 @@ import { apiFetch } from "@/lib/api";
 import { formatDisplayDate, isExpiringWithin } from "@/lib/utils";
 import type { Certification } from "@/lib/types";
 
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://deccanharvests.com";
+
 export const metadata = {
-  title: "Quality & Certifications",
+  title: "Quality & Certifications — Deccan Harvests",
   description:
     "ISO 22000, HACCP, APEDA and Spices Board certified. Every batch tested for pesticide residue, moisture, SHU and ASTA colour value.",
+  openGraph: {
+    title: "Quality & Certifications — Deccan Harvests",
+    description: "ISO 22000, HACCP, APEDA certified. Every spice batch fully tested before export.",
+    type: "website",
+    url: `${BASE_URL}/quality`,
+    siteName: "Deccan Harvests",
+  },
 };
 
 const STATIC_CERTS = [
