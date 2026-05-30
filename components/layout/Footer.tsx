@@ -196,7 +196,7 @@ export default function Footer() {
             className="text-[0.7rem] text-white/20"
             style={{ fontFamily: "var(--font-inter)" }}
           >
-            © 2024 Deccan Harvests — Mulukutla Exports Pvt. Ltd. All rights reserved.
+            © {new Date().getFullYear()} Deccan Harvests — Mulukutla Exports Pvt. Ltd. All rights reserved.
           </p>
           <p
             className="text-[0.7rem] text-white/15 tracking-[0.06em]"

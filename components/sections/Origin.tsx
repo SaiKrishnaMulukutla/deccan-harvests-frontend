@@ -5,18 +5,42 @@ import { motion, useInView } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 
-// Approximate Mercator coordinates in a 800×420 viewBox
+// Mercator projection: viewBox 800×420, lat range ~72°N to −60°S
+// x = (lon + 180) / 360 * 800
+// y = (merc_N - ln(tan(π/4 + lat·π/360))) / merc_range * 420
+// merc_N = ln(tan(π/4 + 72·π/360)) ≈ 1.843
+// merc_range ≈ 3.160  (72°N to 60°S)
 const LOCATIONS = [
-  { id: "guntur", label: "Guntur, India", x: 538, y: 178, primary: true },
-  { id: "dubai",  label: "Dubai, UAE",    x: 480, y: 188 },
-  { id: "london", label: "London, UK",    x: 318, y: 108 },
-  { id: "newyor", label: "New York, USA", x: 148, y: 148 },
-  { id: "singap", label: "Singapore",     x: 605, y: 220 },
-  { id: "sydney", label: "Sydney, AU",    x: 660, y: 285 },
-  { id: "berlin", label: "Germany",       x: 355, y: 112 },
+  { id: "guntur",  label: "Guntur, India",   x: 578, y: 207, primary: true,  labelAbove: true  },
+  { id: "dubai",   label: "Dubai, UAE",       x: 523, y: 185, primary: false, labelAbove: false },
+  { id: "london",  label: "London, UK",       x: 400, y: 105, primary: false, labelAbove: false },
+  { id: "germany", label: "Frankfurt",        x: 419, y: 110, primary: false, labelAbove: true  }, // above to avoid London overlap
+  { id: "singap",  label: "Singapore",        x: 630, y: 241, primary: false, labelAbove: false },
+  { id: "sydney",  label: "Sydney, AU",       x: 736, y: 329, primary: false, labelAbove: true  },
+  { id: "tokyo",   label: "Tokyo, Japan",     x: 711, y: 163, primary: false, labelAbove: true  },
+  { id: "newyork", label: "New York, USA",    x: 236, y: 144, primary: false, labelAbove: true  },
+  { id: "saopaulo",label: "São Paulo",        x: 296, y: 302, primary: false, labelAbove: false },
 ];
 
-// Bezier arcs from Guntur to each destination
+// Simplified continent outlines — equirectangular projection for decorative fills
+// All paths use x=(lon+180)/360*800, y=(90-lat)/180*420
+const CONTINENTS = [
+  // North America
+  "M33,70 L56,42 L111,82 L133,128 L156,145 L200,175 L216,187 L233,152 L256,107 L267,100 L284,82 L278,65 L249,42 L222,23 L178,23 L111,42 Z",
+  // South America
+  "M222,191 L262,187 L322,222 L322,258 L293,272 L256,338 L249,331 L222,222 Z",
+  // Europe
+  "M378,123 L378,110 L389,98 L393,89 L389,75 L411,82 L433,77 L456,58 L467,58 L471,105 L462,117 L444,121 L422,124 L400,126 L389,126 Z",
+  // Africa
+  "M362,175 L389,129 L422,124 L456,124 L482,140 L511,182 L493,184 L478,292 L440,292 L418,222 L389,210 L367,198 Z",
+  // Asia (mainland, rough)
+  "M467,105 L500,124 L522,157 L551,157 L578,147 L622,163 L633,198 L667,175 L711,128 L722,105 L756,70 L711,42 L600,42 L533,58 L467,70 Z",
+  // India peninsula
+  "M551,157 L578,147 L578,191 L571,198 L556,191 L551,180 Z",
+  // Australia
+  "M656,292 L700,245 L722,250 L740,272 L740,298 L711,298 L689,287 L671,289 Z",
+];
+
 function buildArc(x1: number, y1: number, x2: number, y2: number) {
   const mx = (x1 + x2) / 2;
   const my = Math.min(y1, y2) - Math.abs(x2 - x1) * 0.18;
@@ -108,57 +132,71 @@ export default function Origin() {
             <svg
               viewBox="0 0 800 420"
               className="w-full"
-              aria-label="World export map from Guntur India"
+              preserveAspectRatio="xMidYMid meet"
+              aria-label="World export map showing key destinations from Guntur, India"
             >
-              {/* Subtle grid dots */}
               <defs>
                 <pattern id="dots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-                  <circle cx="1" cy="1" r="0.8" fill="rgba(201,168,76,0.15)" />
+                  <circle cx="1" cy="1" r="0.8" fill="rgba(201,168,76,0.12)" />
                 </pattern>
                 <radialGradient id="pulseGrad" cx="50%" cy="50%" r="50%">
                   <stop offset="0%" stopColor="#C9A84C" stopOpacity="0.4" />
                   <stop offset="100%" stopColor="#C9A84C" stopOpacity="0" />
                 </radialGradient>
               </defs>
+
+              {/* Dot-grid background */}
               <rect width="800" height="420" fill="url(#dots)" />
 
-              {/* Animated arc lines */}
+              {/* Continent silhouettes — decorative gold fills */}
+              {CONTINENTS.map((d, i) => (
+                <path
+                  key={i}
+                  d={d}
+                  fill="rgba(201,168,76,0.07)"
+                  stroke="rgba(201,168,76,0.15)"
+                  strokeWidth="0.5"
+                />
+              ))}
+
+              {/* Animated arc lines from Guntur to each destination */}
               {destinations.map((dest, i) => (
                 <motion.path
                   key={dest.id}
                   d={buildArc(origin.x, origin.y, dest.x, dest.y)}
                   fill="none"
                   stroke="#C9A84C"
-                  strokeWidth="1"
-                  strokeOpacity="0.5"
+                  strokeWidth="0.8"
+                  strokeOpacity="0.45"
                   strokeDasharray="4 3"
                   initial={{ pathLength: 0, opacity: 0 }}
                   animate={inView ? { pathLength: 1, opacity: 1 } : {}}
                   transition={{
                     duration: 1.4,
-                    delay: 0.8 + i * 0.18,
+                    delay: 0.8 + i * 0.15,
                     ease: [0.16, 1, 0.3, 1],
                   }}
                 />
               ))}
 
-              {/* Destination dots */}
+              {/* Destination dots + labels */}
               {destinations.map((dest, i) => (
-                <motion.g key={dest.id}
+                <motion.g
+                  key={dest.id}
                   initial={{ opacity: 0, scale: 0 }}
                   animate={inView ? { opacity: 1, scale: 1 } : {}}
-                  transition={{ duration: 0.4, delay: 1.8 + i * 0.12 }}
+                  transition={{ duration: 0.4, delay: 1.8 + i * 0.1 }}
                   style={{ transformOrigin: `${dest.x}px ${dest.y}px` }}
                 >
-                  <circle cx={dest.x} cy={dest.y} r="3.5" fill="#C9A84C" opacity="0.7" />
+                  <circle cx={dest.x} cy={dest.y} r="3" fill="#C9A84C" opacity="0.75" />
                   <text
                     x={dest.x}
-                    y={dest.y + 14}
+                    y={dest.labelAbove ? dest.y - 8 : dest.y + 13}
                     textAnchor="middle"
-                    fill="rgba(255,255,255,0.45)"
-                    fontSize="7"
+                    fill="rgba(255,255,255,0.4)"
+                    fontSize="6.5"
                     fontFamily="var(--font-space-grotesk)"
-                    letterSpacing="0.08em"
+                    letterSpacing="0.07em"
                   >
                     {dest.label}
                   </text>
@@ -167,7 +205,7 @@ export default function Origin() {
 
               {/* Guntur origin — pulsing */}
               <motion.circle
-                cx={origin.x} cy={origin.y} r="16"
+                cx={origin.x} cy={origin.y} r="18"
                 fill="url(#pulseGrad)"
                 animate={inView ? { scale: [1, 1.6, 1], opacity: [0.6, 0, 0.6] } : {}}
                 transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
@@ -179,7 +217,7 @@ export default function Origin() {
                 x={origin.x} y={origin.y - 12}
                 textAnchor="middle"
                 fill="#C9A84C"
-                fontSize="8"
+                fontSize="7.5"
                 fontFamily="var(--font-space-grotesk)"
                 letterSpacing="0.1em"
                 fontWeight="500"
@@ -196,9 +234,9 @@ export default function Origin() {
             animate={inView ? { opacity: 1 } : {}}
             transition={{ duration: 0.8, delay: 2.2 }}
           >
-            Exporting to{" "}
-            <span className="text-gold font-medium">20+ Countries</span>{" "}
-            Across 4 Continents
+            Key export hubs ·{" "}
+            <span className="text-gold font-medium">20+ countries</span>{" "}
+            served worldwide
           </motion.p>
         </div>
       </div>

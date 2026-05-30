@@ -2,17 +2,18 @@
 
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { ShieldCheck, Award, Leaf, BadgeCheck } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import type { Certification } from "@/lib/types";
 
-function iconForCert(name: string): LucideIcon {
+// Extract a short acronym to use as the typographic anchor
+function certAcronym(name: string): string {
   const n = name.toLowerCase();
-  if (n.includes("iso"))    return ShieldCheck;
-  if (n.includes("haccp"))  return Award;
-  if (n.includes("apeda"))  return BadgeCheck;
-  if (n.includes("spice"))  return Leaf;
-  return ShieldCheck;
+  if (n.includes("iso"))    return "ISO";
+  if (n.includes("haccp"))  return "HACCP";
+  if (n.includes("apeda"))  return "APEDA";
+  if (n.includes("spice"))  return "SPICE";
+  if (n.includes("fssai"))  return "FSSAI";
+  // Fallback: first word up to 6 chars
+  return name.split(/[\s:]/)[0].toUpperCase().slice(0, 6);
 }
 
 export default function Certifications({ certs }: { certs: Certification[] }) {
@@ -43,7 +44,7 @@ export default function Certifications({ certs }: { certs: Certification[] }) {
         </motion.h2>
 
         <motion.p
-          className="text-[0.88rem] text-muted leading-relaxed mb-12 max-w-lg"
+          className="text-[0.88rem] text-muted leading-relaxed mb-14 max-w-lg"
           style={{ fontFamily: "var(--font-inter)" }}
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -53,32 +54,42 @@ export default function Certifications({ certs }: { certs: Certification[] }) {
           food safety and export standards before it leaves our facility.
         </motion.p>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* Divider list — typographic acronym anchors */}
+        <div className="divide-y divide-ivory-dark">
           {certs.map((cert, i) => {
-            const Icon = iconForCert(cert.name);
+            const acronym = certAcronym(cert.name);
             return (
               <motion.div
                 key={cert.id}
-                className="flex flex-col items-start p-5 border border-ivory-dark bg-smoke"
-                initial={{ opacity: 0, y: 24 }}
+                className="flex items-start gap-6 lg:gap-10 py-7"
+                initial={{ opacity: 0, y: 20 }}
                 animate={inView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.7, delay: 0.3 + i * 0.1, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.6, delay: 0.3 + i * 0.08, ease: [0.16, 1, 0.3, 1] }}
               >
-                <div className="w-10 h-10 rounded-full border border-gold/30 flex items-center justify-center mb-4 bg-ivory">
-                  <Icon size={17} className="text-gold" strokeWidth={1.5} />
+                {/* Typographic anchor */}
+                <span
+                  className="text-[2rem] leading-none font-light text-gold/60 w-28 flex-shrink-0 pt-0.5 select-none"
+                  style={{ fontFamily: "var(--font-cormorant)" }}
+                  aria-hidden
+                >
+                  {acronym}
+                </span>
+
+                {/* Details */}
+                <div className="flex-1">
+                  <p
+                    className="text-[0.83rem] font-semibold text-black-deep tracking-[0.04em] mb-1"
+                    style={{ fontFamily: "var(--font-space-grotesk)" }}
+                  >
+                    {cert.name}
+                  </p>
+                  <p
+                    className="text-[0.75rem] text-muted leading-relaxed"
+                    style={{ fontFamily: "var(--font-inter)" }}
+                  >
+                    {cert.issuingBody}
+                  </p>
                 </div>
-                <p
-                  className="text-[0.82rem] font-semibold text-black-deep mb-1 tracking-[0.04em]"
-                  style={{ fontFamily: "var(--font-space-grotesk)" }}
-                >
-                  {cert.name}
-                </p>
-                <p
-                  className="text-[0.7rem] text-muted leading-relaxed"
-                  style={{ fontFamily: "var(--font-inter)" }}
-                >
-                  {cert.issuingBody}
-                </p>
               </motion.div>
             );
           })}

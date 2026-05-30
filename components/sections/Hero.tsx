@@ -74,7 +74,7 @@ export default function Hero() {
           From the Fields of India
         </motion.p>
 
-        {/* Main headline — 2 lines, scales to any viewport */}
+        {/* Main headline — 2 lines, completes the eyebrow "From the Fields of India" */}
         <div className="flex flex-col gap-y-1 mb-6">
           <div className="overflow-hidden">
             <motion.span
@@ -84,7 +84,7 @@ export default function Hero() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 1.0, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
             >
-              TO GLOBAL
+              FROM GUNTUR,
             </motion.span>
           </div>
           <div className="overflow-hidden">
@@ -95,7 +95,7 @@ export default function Hero() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 1.0, delay: 0.82, ease: [0.16, 1, 0.3, 1] }}
             >
-              MARKETS
+              TO THE WORLD
             </motion.span>
           </div>
         </div>
@@ -144,27 +144,18 @@ export default function Hero() {
         </motion.div>
       </div>
 
-      {/* ── Slide Counter ── */}
+      {/* ── Origin tagline ── */}
       <motion.div
-        className="absolute bottom-10 left-6 lg:left-12 z-10 flex items-center gap-3"
+        className="absolute bottom-10 left-6 lg:left-12 z-10"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.6, duration: 0.8 }}
       >
         <span
-          className="text-gold text-[0.75rem] tracking-[0.2em]"
+          className="text-white/25 text-[0.65rem] tracking-[0.22em] uppercase"
           style={{ fontFamily: "var(--font-space-grotesk)" }}
         >
-          01
-        </span>
-        <div className="w-8 h-px bg-gold/40">
-          <div className="h-px bg-gold w-1/2" />
-        </div>
-        <span
-          className="text-white/30 text-[0.75rem] tracking-[0.2em]"
-          style={{ fontFamily: "var(--font-space-grotesk)" }}
-        >
-          05
+          Guntur · Andhra Pradesh · India
         </span>
       </motion.div>
 
